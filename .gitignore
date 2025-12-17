@@ -1,0 +1,28 @@
+# Python virtual environments
+venv/
+.env/
+
+# Pytest
+.pytest_cache/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# IDE / editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Ignore all data
+data/**
+
+#keep directory itself
+!data/
+
+#ignore large data formats
+*.nc
+*.csv
+
