@@ -48,7 +48,9 @@ def write_html(param, level=None, time=None, time_ind=None, directory=None):
         precedence if both time and time_ind are set)
     """
 
+    
     # check that dataset actually contains the selected variable, time, ...
+    era5.check_file_availability()
     era5.check_data_availability(param, level=level, time=time, time_ind=time_ind)
 
     # create a temporary directory for the plot

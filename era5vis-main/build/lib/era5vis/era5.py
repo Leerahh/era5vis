@@ -6,6 +6,20 @@ import pandas as pd
 from era5vis import cfg
 
 
+def check_file_availability():
+    """Check if the ERA5 data file is available."""
+    try:
+        with xr.open_dataset(cfg.datafile).load() as ds:
+            pass
+    except FileNotFoundError:
+        raise FileNotFoundError(
+            f"The specified data file does not exist. Please set a valid path in cfg.py."
+        )
+    except Exception as e:
+        raise RuntimeError(
+            f"Error loading data file '{cfg.datafile}': {e}"
+        )
+
 
 def check_data_availability(param, level=None, time=None, time_ind=None):
      with xr.open_dataset(cfg.datafile).load() as ds:
