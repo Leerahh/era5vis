@@ -1,12 +1,90 @@
 """Functions interacting with the ERA5 dataset. """
 
 import xarray as xr
-
+import numpy as np
+import pandas as pd
 from era5vis import cfg
 
 
+def check_file_availability():
+    """Check if the ERA5 data file is available."""
+    try:
+        with xr.open_dataset(cfg.datafile).load() as ds:
+            pass
+    except FileNotFoundError:
+        raise FileNotFoundError(
+            f"The specified data file does not exist. Please set a valid path in cfg.py."
+        )
+    except Exception as e:
+        raise RuntimeError(
+            f"Error loading data file '{cfg.datafile}': {e}"
+        )
+
+
 def check_data_availability(param, level=None, time=None, time_ind=None):
-    pass
+     with xr.open_dataset(cfg.datafile).load() as ds:
+        
+        # --- check variable ---
+        if param not in ds.variables:
+            raise KeyError(
+                f"Variable '{param}' not found in data file. "
+                f"Available variables: {list(ds.variables)}"
+            )
+
+        da = ds[param]
+
+        # --- check model level ---
+        if level is not None:
+            if "pressure_level" not in da.dims:
+                raise KeyError(
+                    f"Variable '{param}' has no pressure_level dimension."
+                )
+
+            if level not in da["pressure_level"].values:
+                raise ValueError(
+                    f"Pressure level {level} not available for variable '{param}'. "
+                    f"Available levels: {da['pressure_level'].values}"
+                )
+
+            # --- check time by value ---
+        if time is not None:
+            if "valid_time" not in da.dims:
+                raise KeyError(
+                    f"Variable '{param}' has no valid_time dimension."
+                )
+
+            # normalize user input → numpy.datetime64
+            try:
+                time_dt = np.datetime64(pd.to_datetime(time))
+            except Exception:
+                raise ValueError(
+                    f"Time '{time}' could not be parsed as a datetime."
+                )
+
+            times = da["valid_time"].values
+
+            if time_dt not in times:
+                raise ValueError(
+                    f"Time {time_dt} not available for variable '{param}'. "
+                    f"Available time range: {times.min()} – {times.max()}"
+                )
+
+            
+        # --- check time by index ---
+        if time_ind is not None:
+            if "valid_time" not in da.dims:
+                raise KeyError(
+                    f"Variable '{param}' has no valid_time dimension."
+                )
+
+            if not (0 <= time_ind < da.sizes["valid_time"]):
+                raise IndexError(
+                    f"time_ind={time_ind} out of bounds for variable '{param}'. "
+                    f"Valid range: 0 … {da.sizes['valid_time'] - 1}"
+                )
+
+            
+        
 
 
 def horiz_cross_section(param, lvl, time):
