@@ -2,11 +2,17 @@
 
 Manuela Lehner
 November 2025
+
+Edited by Leah Herrfurth December 2025:
+    - using argparse instead of sys.args
+    - adding config-based plotting
 """
 
 import sys
 import webbrowser
 import argparse
+
+import yaml
 import era5vis
 
 
@@ -25,7 +31,11 @@ def modellevel(args):
     description="Visualization of ERA5 at a given model level."
     )
 
-
+    parser.add_argument(
+        "config", 
+        nargs="?",
+        help="Path to configuration file."
+    )
     parser.add_argument(
         "-v", "--version",
         action="version",
@@ -76,20 +86,37 @@ def modellevel(args):
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(0)
+
+    config = {}
+    if args.config:
+        if not args.config.endswith((".yaml", ".yml")):
+            parser.error("config must be a .yaml or .yml file")
+
+        with open(args.config, 'r') as f:
+            config = yaml.safe_load(f)
+    
+    # Merge config values into args if CLI args are not provided
+    parameter = args.parameter or config.get("plot", {}).get("parameter")
+    level = args.level or config.get("plot", {}).get("level")
+    time = args.time or config.get("plot", {}).get("time")
+    time_index = args.time_index or config.get("plot", {}).get("time_ind", 0)
+    no_browser = args.no_browser or config.get("plot", {}).get("no-browser", False)
+
+        
    
-    if args.parameter is None or args.level is None:
+    if parameter is None or level is None:
         parser.error("era5vis_modellevel: command not understood. "
               "Type 'era5vis_modellevel --help' for usage information.")
     
     else:
         html_path = era5vis.write_html(
-            args.parameter,
-            level=args.level,
-            time=args.time,
-            time_ind=args.time_index,
+            parameter,
+            level=level,
+            time=time,
+            time_ind=time_index,
         )
 
-        if args.no_browser:
+        if no_browser:
             print("File successfully generated at:", html_path)
         else:
             webbrowser.get().open_new_tab('file://' + str(html_path))
