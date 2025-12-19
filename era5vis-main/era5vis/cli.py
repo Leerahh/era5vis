@@ -1,40 +1,62 @@
-""" contains command line tools of ERA5vis
+"""
+Command line tools for ERA5vis.
 
 Manuela Lehner
 November 2025
 
 Edited by Leah Herrfurth December 2025:
-    - using argparse instead of sys.args
-    - adding config-based plotting
+    - Using argparse instead of sys.args
+    - Adding config-based plotting
 """
 
 import sys
 import webbrowser
 import argparse
-
 import yaml
 import era5vis
 
 
 
 
-
 def modellevel(args):
-    """The actual era5vis_modellevel command line tool.
+    """Main entry function for the era5vis_modellevel CLI tool."""
+    parsed_args = _parse_args(args)
+
+    config = {}
+    if parsed_args.config:
+        config = _load_config(parsed_args.config)
+
+    params = _merge_config_and_args(parsed_args, config)
+
+    _generate_plot(**params)
+
+
+def era5vis_modellevel():
+    """Entry point for the era5vis_modellevel application script."""
+    modellevel(sys.argv[1:])
+
+
+def _parse_args(args):
+    """
+    Parse command-line arguments for era5vis_modellevel.
 
     Parameters
     ----------
-    args: list
-        output of sys.args[1:]
-    """
+    args : list
+        output of sys.argv[1:].
 
+    Returns
+    -------
+    argparse.Namespace
+        Parsed arguments.
+    """
     parser = argparse.ArgumentParser(
-    prog="era5vis_modellevel",
-    description="Visualization of ERA5 at a given model level."
+        prog="era5vis_modellevel",
+        description="Visualization of ERA5 at a given model level."
     )
 
     parser.add_argument(
-        "config", 
+        "config",
         nargs="?",
         help="Path to configuration file."
     )
@@ -44,7 +66,7 @@ def modellevel(args):
         version=(
             f"era5vis_modellevel: {era5vis.__version__}\n"
             "Licence: public domain\n"
-            'era5vis_modellevel is provided "as is", without warranty of any kind'
+            "era5vis_modellevel is provided 'as is' without warranty of any kind"
         )
     )
     parser.add_argument(
@@ -68,49 +90,101 @@ def modellevel(args):
         metavar="TIME_IND",
         type=int,
         default=0,
-        help=("Time index within dataset to plot (--time takes "
-              "precedence if both --time and --time_index are specified) "
-              "(default=0)"
-              )
-
+        help=(
+            "Time index within dataset to plot (--time takes precedence "
+            "if both --time and --time_index are specified) (default=0)"
+        )
     )
     parser.add_argument(
         "--no-browser",
         action="store_true",
         help=(
-            "Do not open a browser with the newly generated visualisation, "
-            "just print the path to the html file instead"
+            "Do not open a browser with the newly generated visualization, "
+            "just print the path to the HTML file instead"
         )
-    ) 
-    
+    )
+
     if not args:
         parser.print_help()
         sys.exit(0)
 
-    args = [str(a) for a in args]
-    args = parser.parse_args(args)
+    return parser.parse_args([str(a) for a in args])
 
-    config = {}
-    if args.config:
-        if not args.config.endswith((".yaml", ".yml")):
-            parser.error("config must be a .yaml or .yml file")
 
-        with open(args.config, 'r') as f:
-            config = yaml.safe_load(f)
-    
-    # Merge config values into args if CLI args are not provided
-    parameter = args.parameter or config.get("plot", {}).get("parameter")
-    level = args.level or config.get("plot", {}).get("level")
-    time = args.time or config.get("plot", {}).get("time")
-    time_index = args.time_index or config.get("plot", {}).get("time_ind", 0)
-    no_browser = args.no_browser or config.get("plot", {}).get("no_browser", False)
+def _load_config(config_path):
+    """
+    Load configuration from a YAML file.
 
-        
-   
+    Parameters
+    ----------
+    config_path : str
+        Path to the YAML configuration file.
+
+    Returns
+    -------
+    dict
+        Configuration dictionary.
+    """
+    if not config_path.endswith((".yaml", ".yml")):
+        raise ValueError("Config must be a .yaml or .yml file")
+
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
+
+
+def _merge_config_and_args(args, config):
+    """
+    Merge command-line arguments with configuration file values.
+
+    Command-line arguments take precedence over configuration.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Parsed command-line arguments.
+    config : dict
+        Loaded configuration dictionary.
+
+    Returns
+    -------
+    dict
+        Final parameters for plotting.
+    """
+    plot_config = config.get("plot", {}) if config else {}
+
+    return {
+        "parameter": args.parameter or plot_config.get("parameter"),
+        "level": args.level or plot_config.get("level"),
+        "time": args.time or plot_config.get("time"),
+        "time_index": args.time_index or plot_config.get("time_ind", 0),
+        "no_browser": args.no_browser or plot_config.get("no_browser", False),
+    }
+
+
+def _generate_plot(parameter, level, time=None, time_index=0, no_browser=False):
+    """
+    Generate an ERA5 visualization and optionally open it in a browser.
+
+    Parameters
+    ----------
+    parameter : str
+        ERA5 variable to plot.
+    level : int
+        Pressure level in hPa.
+    time : str, optional
+        Time to plot (YYYYmmddHHMM), by default None
+    time_index : int, optional
+        Time index to plot, by default 0
+    no_browser : bool, optional
+        If True, do not open the browser, by default False
+    """
     if parameter is None or level is None:
-        parser.error("era5vis_modellevel: command not understood. "
-              "Type 'era5vis_modellevel --help' for usage information.")
-    
+        parser = argparse.ArgumentParser()
+        parser.error(
+            "era5vis_modellevel: command not understood. "
+            "Parameter and level are required. "
+            "Type 'era5vis_modellevel --help' for usage information."
+        )
     else:
         html_path = era5vis.write_html(
             parameter,
@@ -122,10 +196,4 @@ def modellevel(args):
         if no_browser:
             print("File successfully generated at:", html_path)
         else:
-            webbrowser.get().open_new_tab('file://' + str(html_path))
-
-
-
-def era5vis_modellevel():
-    """Entry point for the era5vis_modellevel application script"""
-    modellevel(sys.argv[1:])
+            webbrowser.get().open_new_tab(f"file://{html_path}")
