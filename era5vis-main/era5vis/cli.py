@@ -17,6 +17,8 @@ import era5vis
 
 
 
+
+
 def modellevel(args):
     """The actual era5vis_modellevel command line tool.
 
@@ -79,13 +81,14 @@ def modellevel(args):
             "Do not open a browser with the newly generated visualisation, "
             "just print the path to the html file instead"
         )
-    )
-
-    args = parser.parse_args()
-
-    if len(sys.argv) == 1:
+    ) 
+    
+    if not args:
         parser.print_help()
         sys.exit(0)
+
+    args = [str(a) for a in args]
+    args = parser.parse_args(args)
 
     config = {}
     if args.config:
@@ -100,7 +103,7 @@ def modellevel(args):
     level = args.level or config.get("plot", {}).get("level")
     time = args.time or config.get("plot", {}).get("time")
     time_index = args.time_index or config.get("plot", {}).get("time_ind", 0)
-    no_browser = args.no_browser or config.get("plot", {}).get("no-browser", False)
+    no_browser = args.no_browser or config.get("plot", {}).get("no_browser", False)
 
         
    
