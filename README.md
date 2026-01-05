@@ -1,2 +1,2 @@
 # er5vis
-Term Project for scientific Programming
+Term Project for Scientific Programming
