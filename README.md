@@ -17,3 +17,9 @@ Try the command line interface (era5vis_modellevel -h) from a terminal. Now expl
 
 ## Project: make the package better
 Now you should be ready to contribute to the package! As a group, add at least N+1 simple functionalities to it, where N is your group size. This functionality can be anything you want, as long as it makes you write some code.
+
+Contributions:
+- Leah: config-based run?
+- Lina: Skew-T map
+- Ilias:
+- joint: merge plots to single one/automatically download data
