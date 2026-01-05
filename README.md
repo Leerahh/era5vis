@@ -2,22 +2,13 @@
 Term Project for Scientific Programming: The ERA5vis package
 
 ## The ERA5vis package
-I have put together a small package called ERA5vis. Its structure is based on the template package and the ClimVis package written by Fabien Maussion.
-
-Download the zipped package from here and extract it. Read the README and the package requirements first.
-
-Now install the package in development mode:
-
+I have put together a small package called ERA5vis. Its structure is based on the template package and the ClimVis package written by Fabien Maussion. Download the zipped package from here and extract it. Read the README and the package requirements first.
+- Install the package in development mode:
 pip install -e .
 Try the command line interface (era5vis_modellevel -h) from a terminal. Now explore setup.py: can you find the line that makes the command available from the terminal? Where is the code that is being executed when you call era5vis_modellevel?
-
-Familiarize yourself with the tool. Can you understand what the role of each function is?
-
-Can you run the tests successfully? Probably not. Somewhere in cfg.py, a hard-coded path is pointing to a directory that does not exist on your system.
-
-You can download an example ERA5 dataset from our OLAT course (folder Semester Project/data). This is the same dataset that we have already used for an earlier assignment.
-
-Make sure you are able to run the command succesfully before moving on. For example, era5vis_modellevel -p z -lvl 500 should work fine and display a page in your browser.
+- Familiarize yourself with the tool. Can you understand what the role of each function is?
+- Can you run the tests successfully? Probably not. Somewhere in cfg.py, a hard-coded path is pointing to a directory that does not exist on your system.
+- era5vis_modellevel -p z -lvl 500 should work fine and display a page in your browser.
 
 ## Guided exercise: make the package more robust
 - The package currently contains no check whether the user-specified variable, model level, time stamp actually exist in the data file. A function definition line has alrady been created in era5.py (function check_data_availability) and a call to this function has already been added to function core.write_html. Write the function code to check if variable, model level, and time stamp are in the data file and if not raise an exception.
