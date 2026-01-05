@@ -6,17 +6,18 @@ I have put together a small package called ERA5vis. Its structure is based on th
 - Install the package in development mode: pip install -e . $\checkmark$
 - Try the command line interface (era5vis_modellevel -h) from a terminal. $\checkmark$
 - Explore setup.py:
-  -- Can you find the line that makes the command available from the terminal?
+  Can you find the line that makes the command available from the terminal?
     entry_points={
         'console_scripts': [
             'era5vis_modellevel=era5vis.cli:era5vis_modellevel'
         ,]
   ,},
-  -- Where is the code that is being executed when you call era5vis_modellevel?
+  Where is the code that is being executed when you call era5vis_modellevel?
     era5vis/cli.py
 - Familiarize yourself with the tool. Can you understand what the role of each function is?
+  see finalproject_explain.txt
 - Can you run the tests successfully? Probably not. Somewhere in cfg.py, a hard-coded path is pointing to a directory that does not exist on your system.
-- era5vis_modellevel -p z -lvl 500 should work fine and display a page in your browser.
+- era5vis_modellevel -p z -lvl 500 should work fine and display a page in your browser. $\checkmark$
 
 ## Guided exercise: make the package more robust
 - The package currently contains no check whether the user-specified variable, model level, time stamp actually exist in the data file. A function definition line has alrady been created in era5.py (function check_data_availability) and a call to this function has already been added to function core.write_html. Write the function code to check if variable, model level, and time stamp are in the data file and if not raise an exception.
