@@ -3,9 +3,9 @@ Term Project for Scientific Programming: The ERA5vis package
 
 ## The ERA5vis package
 I have put together a small package called ERA5vis. Its structure is based on the template package and the ClimVis package written by Fabien Maussion. Download the zipped package from here and extract it. Read the README and the package requirements first.
-- Install the package in development mode: pip install -e . $\checkmark$
-- Try the command line interface (era5vis_modellevel -h) from a terminal. $\checkmark$
-- Explore setup.py:  
+- $\checkmark$ Install the package in development mode: pip install -e .
+- $\checkmark$ Try the command line interface (era5vis_modellevel -h) from a terminal.
+- $\checkmark$ Explore setup.py:  
   Can you find the line that makes the command available from the terminal?
     entry_points={
         'console_scripts': [  
@@ -14,10 +14,10 @@ I have put together a small package called ERA5vis. Its structure is based on th
   ,},  
   Where is the code that is being executed when you call era5vis_modellevel?
     era5vis/cli.py  
-- Familiarize yourself with the tool. Can you understand what the role of each function is?
+- $\checkmark$ Familiarize yourself with the tool. Can you understand what the role of each function is?  
   see finalproject_explain.txt
 - Can you run the tests successfully? Probably not. Somewhere in cfg.py, a hard-coded path is pointing to a directory that does not exist on your system.
-- era5vis_modellevel -p z -lvl 500 should work fine and display a page in your browser. $\checkmark$
+- $\checkmark$ era5vis_modellevel -p z -lvl 500 should work fine and display a page in your browser. 
 
 ## Guided exercise: make the package more robust
 - The package currently contains no check whether the user-specified variable, model level, time stamp actually exist in the data file. A function definition line has alrady been created in era5.py (function check_data_availability) and a call to this function has already been added to function core.write_html. Write the function code to check if variable, model level, and time stamp are in the data file and if not raise an exception.
