@@ -1,4 +1,4 @@
-plot_type: scalar_wind   # default plot type
+plot_type: scalar_wind  # default plot type
 
 scalar_wind:
   parameter: z
@@ -6,13 +6,20 @@ scalar_wind:
   v: v
   level: 500
   time: 2025-10-01T00:00
+  datafile: "../data/era5_example_dataset.nc"
 
 skewT:
   lat: 48.21
   lon: 16.37
   time: 2025-10-01T00:00
+  variables:
+    T: t
+    q: q
+    u: u
+    v: v
+    p: pressure_level
+  datafile: "../data/era5_example_1.nc"
 
 common:
-  datafile: "../data/era5_example_1.nc"
   no_browser: true
   directory: "./"
