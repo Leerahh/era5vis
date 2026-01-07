@@ -1,4 +1,4 @@
-"""Plot geopotential with wind barbs on a map and Skew-T diagram for example location."""
+"""Plot geopotential with wind barbs on a map."""
 
 from datetime import datetime
 import matplotlib.pyplot as plt
@@ -10,8 +10,8 @@ from metpy.plots import SkewT, Hodograph
 from metpy.units import units
 import metpy.calc as mpcalc
 
-def plot_geopotential_with_wind(da, u, v, filepath=None, step=1):
-    '''Plot geopotential as contours and wind barbs on top.
+def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
+    '''Plot scalar as contours and wind barbs on top.
 
     Parameters
     ----------
@@ -48,7 +48,7 @@ def plot_geopotential_with_wind(da, u, v, filepath=None, step=1):
         fontsize=12
     )
 
-    # plot geopotential as filled contours
+    # plot scalar as filled contours
     cf = ax.contourf(da.longitude, da.latitude, da, levels=20, cmap='viridis')
     cbar = plt.colorbar(cf, ax=ax, orientation='vertical', pad=0.02)
     cbar.set_label(f'({da.units})')
@@ -79,9 +79,16 @@ def plot_geopotential_with_wind(da, u, v, filepath=None, step=1):
     gl.xformatter = LongitudeFormatter()
     gl.yformatter = LatitudeFormatter()
 
-    if filepath is not None:
-        fig.savefig(filepath, bbox_inches='tight')
-        plt.close()
+    
+    if savepath is None:
+        time_safe = str(time).replace(":", "-").replace(" ", "_")
+        #filename = f'era5_{scalar}_wind_level{level}.png'
+        filename = f"scalar_wind_{da.name}_{da.pressure_level.to_numpy()}_{time_safe}.png"
+        fig.savefig(filename, bbox_inches='tight')
+        plt.close(fig)
+    else:
+        fig.savefig(savepath, bbox_inches='tight')
+        plt.close(fig)
 
     return fig
 
@@ -112,7 +119,7 @@ def plot_skewT(lat, lon, time, datafile, variables=None, savepath=None, curve=No
     # default variable names
     if variables is None:
         variables = {
-            'T': 't2m',    # temperature
+            'T': 't',    # temperature
             'q': 'q',    # specific humidity
             'u': 'u',    # zonal wind
             'v': 'v',    # meridional wind
@@ -121,24 +128,24 @@ def plot_skewT(lat, lon, time, datafile, variables=None, savepath=None, curve=No
 
     with xr.open_dataset(datafile) as ds:
     # select nearest lat/lon
-        T = ds['t'].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
-        q = ds['q'].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
-        u = ds['u'].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
-        v = ds['v'].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
-        p = ds['pressure_level']
-
-    T = T.values * units.kelvin
-    u = u.values * units('m/s')
-    v = v.values * units('m/s')
-    p = p.values * units.hPa
-    
-    if 'Td' in variables:
-        Td = ds[variables['Td']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
-        Td = Td.values * units.kelvin
-    else:
-        # compute from specific humidity
+        T = ds[variables['T']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
         q = ds[variables['q']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
-        Td = mpcalc.dewpoint_from_specific_humidity(p, q)
+        u = ds[variables['u']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
+        v = ds[variables['v']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
+        p = ds[variables['p']]
+
+        T = T.values * units.kelvin
+        u = u.values * units('m/s')
+        v = v.values * units('m/s')
+        p = p.values * units.hPa
+    
+        if 'Td' in variables:
+            Td = ds[variables['Td']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
+            Td = Td.values * units.kelvin
+        else:
+            # compute from specific humidity
+            q = ds[variables['q']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
+            Td = mpcalc.dewpoint_from_specific_humidity(p, q)
 
     # create figure
     fig = plt.figure(figsize=(9, 9))
@@ -163,63 +170,23 @@ def plot_skewT(lat, lon, time, datafile, variables=None, savepath=None, curve=No
     skew.plot_mixing_lines()
 
     # create a Hodograph inset
-    ax_hod = plt.axes((0.7, 0.75, 0.2, 0.2))
+    ax_hod = plt.axes((0.75, 0.75, 0.2, 0.2))
     h = Hodograph(ax_hod, component_range=50.)
     h.add_grid(increment=10)
     h.plot(u, v)
-    ax_hod.set_xlabel('Wind speed [m s$^{-2}$]')
+    ax_hod.set_xlabel('Wind speed [m s$^{-1}$]')
+    ax_hod.set_ylabel('Wind speed [m s$^{-1}$]')
 
     # title
-    skew.ax.set_title(f'Skew-T at {lat:.2f}N, {lon:.2f}E ({time})', fontsize=12)
+    skew.ax.set_title(f"Skew-T at '{lat:.2f}'N, '{lon:.2f}'E ('{time}')", fontsize=12)
 
-    if savepath is not None:
+    if savepath is None:
+        time_safe = str(time).replace(":", "-").replace(" ", "_")
+        filename = f"SkewT_{lat:.2f}_{lon:.2f}_{time_safe}.png"
+        fig.savefig(filename, bbox_inches='tight')
+        plt.close(fig)
+    else:
         fig.savefig(savepath, bbox_inches='tight')
         plt.close(fig)
 
     return fig
-
-
-if __name__ == '__main__':
-    '''
-    Test plotting functions in graphics.py.
-
-    This script tests:
-    1) Horizontal geopotential + wind barbs map
-    2) Vertical Skew-T diagram at a selected location
-
-    Requires a valid ERA5 NetCDF dataset.
-    '''
-
-    from era5vis.era5 import check_file_availability, horiz_cross_section
-
-    # Check ERA5 dataset
-    check_file_availability()
-    datafile = r'data\era5_example_1.nc'
-
-    # map plot settings
-    level = 850
-    time_index = 0
-
-    # Skew-T settings
-    lat, lon = 50.0, 10.0
-    time = '2025-10-01T00:00'
-
-    # map plot (geopotential + wind)
-    da = horiz_cross_section('z', level, time_index)
-    u = horiz_cross_section('u', level, time_index)
-    v = horiz_cross_section('v', level, time_index)
-
-    plot_geopotential_with_wind(
-        da, u, v,
-        filepath=f'geopotential_wind_{level}hPa.png',
-        step=9
-    )
-
-    # Skew-T plot
-    plot_skewT(
-        lat=lat,
-        lon=lon,
-        time=time,
-        datafile=datafile,
-        savepath='skewT_example.png'
-    )
