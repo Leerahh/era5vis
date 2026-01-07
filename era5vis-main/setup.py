@@ -201,7 +201,7 @@ setup(
     # executes the function `main` from this package when invoked:
     entry_points={  # Optional
         'console_scripts': [
-            'era5vis_modellevel=era5vis.cli:era5vis_modellevel',
+            'era5vis_modellevel=era5vis.cli:era5vis_generate_plot',
         ],
     },
 
