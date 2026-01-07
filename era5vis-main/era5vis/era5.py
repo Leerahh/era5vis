@@ -6,10 +6,10 @@ import pandas as pd
 from era5vis import cfg
 
 
-def check_file_availability():
+def check_file_availability(datafile):
     """Check if the ERA5 data file is available."""
     try:
-        with xr.open_dataset(cfg.datafile).load() as ds:
+        with xr.open_dataset(datafile).load() as ds:
             pass
     except FileNotFoundError:
         raise FileNotFoundError(
@@ -17,12 +17,12 @@ def check_file_availability():
         )
     except Exception as e:
         raise RuntimeError(
-            f"Error loading data file '{cfg.datafile}': {e}"
+            f"Error loading data file '{datafile}': {e}"
         )
 
 
-def check_data_availability(param, level=None, time=None, time_ind=None):
-     with xr.open_dataset(cfg.datafile).load() as ds:
+def check_data_availability(param, level=None, time=None, time_ind=None, datafile=None):
+     with xr.open_dataset(datafile).load() as ds:
         
         # --- check variable ---
         if param not in ds.variables:
@@ -84,10 +84,7 @@ def check_data_availability(param, level=None, time=None, time_ind=None):
                 )
 
             
-        
-
-
-def horiz_cross_section(param, lvl, time):
+def horiz_cross_section(param, lvl, time, datafile):
     """Extract a horizontal cross section from the ERA5 data.
     
     Parameters
@@ -106,7 +103,7 @@ def horiz_cross_section(param, lvl, time):
     """
 
     # use either sel or sel depending on the type of time (index or date format)
-    with xr.open_dataset(cfg.datafile).load() as ds:
+    with xr.open_dataset(datafile).load() as ds:
         if isinstance(time, str):
             da = ds[param].sel(pressure_level=lvl).sel(valid_time=time, method="nearest")
         elif isinstance(time, int):
