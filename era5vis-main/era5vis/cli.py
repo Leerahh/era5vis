@@ -4,14 +4,13 @@ Command line tools for ERA5vis.
 Manuela Lehner
 November 2025
 
-Edited by Leah Herrfurth December 2025:
+Edited by Leah Herrfurth, December 2025:
     - Using argparse instead of sys.args
     - Adding config-based plotting
-Edited by Lina Brückner January 2026:
-    - CLI entry points for scalar_wind and skewT plots
-    - Add plot type as command line argument
-    - Add directory to save plots
-    - Update era5vis_generate_plot
+Edited by Lina Brückner, January 2026:
+    - Adding parser arguments plot type and directory
+    - Adding new parser arguments in _merge_config_and_args()
+    - Update of _generate_plot() for the two different plot types
 """
 
 import sys
@@ -19,112 +18,27 @@ import webbrowser
 import argparse
 import yaml
 import era5vis
-import os
-from pathlib import Path
+from . import core
 
-def generate_plot(params):
-    """
-    Main entry function for the CLI tool (supports scalar_wind or skewT).
 
-    Parameters
-    ----------
-    params : dict
-        Dictionary containing all final plotting parameters, 
-        including plot_type, datafile, directory, and plot-specific args.
-    """
 
-    # ensure output directory exists
-    if not params.get('directory'):
-        params['directory'] = os.path.abspath(".")
-    else:
-        params['directory'] = os.path.abspath(params['directory'])
-        os.makedirs(params['directory'], exist_ok=True)
 
-    # determine which plot type to generate
-    plot_type = params.get('plot_type', 'scalar_wind')
+def modellevel(args):
+    """Main entry function for the era5vis_modellevel CLI tool."""
+    parsed_args = _parse_args(args)
 
-    if plot_type == 'scalar_wind':
-        # required arguments for scalar_wind
-        missing = [arg for arg in ['parameter', 'u', 'v', 'level', 'datafile'] if not params.get(arg)]
-        if missing:
-            raise ValueError(f"Missing required arguments for scalar_wind plot: {', '.join(missing)}")
+    config = {}
+    if parsed_args.config:
+        config = _load_config(parsed_args.config)
 
-        # call the plotting function
-        html_path = era5vis.write_scalar_with_wind_html(
-            scalar=params['parameter'],
-            u=params['u'],
-            v=params['v'],
-            level=params['level'],
-            time=params.get('time'),
-            time_index=params.get('time_index', 0),
-            datafile=params['datafile'],
-            directory=params['directory']
-        )
+    params = _merge_config_and_args(parsed_args, config)
 
-    elif plot_type == 'skewT':
-        # required arguments for skewT
-        missing = [arg for arg in ['lat', 'lon', 'time', 'datafile'] if not params.get(arg)]
-        if missing:
-            raise ValueError(f"Missing required arguments for skewT plot: {', '.join(missing)}")
+    _generate_plot(**params)
 
-        # call the plotting function
-        html_path = era5vis.write_skewT_html(
-            lat=params['lat'],
-            lon=params['lon'],
-            time=params['time'],
-            datafile=params['datafile'],
-            directory=params['directory']
-        )
 
-    else:
-        raise ValueError(f"Unknown plot_type '{plot_type}' specified.")
-
-    # handle browser opening
-    if params.get('no_browser', False):
-        print("File successfully generated at:", html_path)
-    else:
-        webbrowser.get().open_new_tab(f'file://{html_path}')
-    
-    
-def era5vis_generate_plot(args=None):
-    if args == []:
-        _parse_args([])  # prints help and exits(0)
-
-    parsed_args = _parse_args(args if args is not None else sys.argv[1:])
-
-    # handle --version
-    if getattr(parsed_args, "version", False):
-        print("era5vis_modellevel: 0.0.1 Licence: public domain era5vis_modellevel is")
-        print("provided 'as is' without warranty of any kind")
-        sys.exit(0)
-
-    # detect YAML config
-    config_file = None
-    if args:
-        for a in args:
-            if str(a).lower().endswith((".yaml", ".yml")):
-                config_file = str(a)
-                break
-
-    config_data = {}
-    if config_file:
-        with open(config_file) as f:
-            config_data = yaml.safe_load(f)
-
-    # merge CLI args with config
-    param = parsed_args.parameter or config_data.get("plot", {}).get("parameter")
-    level = parsed_args.level or config_data.get("plot", {}).get("level")
-    time = parsed_args.time or config_data.get("plot", {}).get("time")
-    time_index = parsed_args.time_index or config_data.get("plot", {}).get("time_index")
-    no_browser = parsed_args.no_browser or config_data.get("plot", {}).get("no_browser", False)
-
-    # validate required parameters
-    if param is None or level is None:
-        print("command not understood", file=sys.stderr)
-        sys.exit(2)
-
-    print(f"Plotting parameter={param}, level={level}, time={time}, time_index={time_index}, no_browser={no_browser}")
-    print(f"File successfully generated at: /tmp/{param}_{level}.html")
+def era5vis_modellevel():
+    """Entry point for the era5vis_modellevel application script."""
+    modellevel(sys.argv[1:])
 
 
 def _parse_args(args):
@@ -187,6 +101,14 @@ def _parse_args(args):
         )
     )
     parser.add_argument(
+        "--plot_type",
+        choices=["scalar_wind","skewT"],
+        type=str,
+        default="scalar_wind",
+        help=("Select either scalar_wind or skewT"
+        )
+    )
+    parser.add_argument(
         "--no-browser",
         action="store_true",
         help=(
@@ -194,26 +116,18 @@ def _parse_args(args):
             "just print the path to the HTML file instead"
         )
     )
-    
-    parser.add_argument(
-        '--plot_type',
-        choices=['scalar_wind', 'skewT'],
-        default=None,
-        help=('Type of plot to generate (overrides config if provided)')
-        )
-    
     parser.add_argument(
         "--directory",
         metavar="DIR",
-        help="Directory where the HTML file will be saved (overrides config)"
+        help=("Directory where the HTML file will be saved (overrides config)"
         )
+    )
 
-
-    if args == [] or args is None:
+    if not args:
         parser.print_help()
         sys.exit(0)
 
-    return parser.parse_args(args)
+    return parser.parse_args([str(a) for a in args])
 
 
 def _load_config(config_path):
@@ -236,47 +150,107 @@ def _load_config(config_path):
     with open(config_path, "r") as f:
         return yaml.safe_load(f)
 
-
 def _merge_config_and_args(args, config):
     """
     Merge command-line arguments with configuration file values.
 
     Command-line arguments take precedence over configuration.
 
-    Returns a final params dict.
-    """
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Parsed command-line arguments.
+    config : dict
+        Loaded configuration dictionary.
 
-    # determine plot type: CLI arg overrides config
+    Returns
+    -------
+    dict
+        Final parameters for plotting.
+    """
+    # determine plot type: CLI argument overrides YAML
     plot_type = args.plot_type or config.get("plot_type", "scalar_wind")
 
-    # get plot-type-specific section from config
-    plot_config = config.get(plot_type, {})
+    # get plot-type-specific config section
+    plot_config = config.get(plot_type, {}) if config else {}
 
-    # get common parameters from config
-    common_config = config.get("common", {})
+    # get common config
+    common_config = config.get("common", {}) if config else {}
 
-    # start with common + plot-specific config
-    params = {**common_config, **plot_config}
-
-    # override with CLI args if provided
-    cli_args = vars(args)
-    for k, v in cli_args.items():
-        if v is not None:
-            params[k] = v
-
-    # always store plot_type
-    params["plot_type"] = plot_type
-
-    # make datafile absolute relative to YAML file if provided
-    if "datafile" in params and args.config:
-        yaml_dir = Path(args.config).parent
-        params["datafile"] = str((yaml_dir / params["datafile"]).resolve())
-
-    # ensure directory exists
-    if "directory" not in params or not params["directory"]:
-        params["directory"] = str(Path(".").resolve())
-    else:
-        params["directory"] = str(Path(params["directory"]).resolve())
-        os.makedirs(params["directory"], exist_ok=True)
+    # merge CLI args with YAML: CLI overrides YAML
+    params = {
+        "plot_type": plot_type,
+        "parameter": args.parameter or plot_config.get("parameter"),
+        "level": args.level or plot_config.get("level"),
+        "u": getattr(args, "u", None) or plot_config.get("u"),
+        "v": getattr(args, "v", None) or plot_config.get("v"),
+        "lat": getattr(args, "lat", None) or plot_config.get("lat"),
+        "lon": getattr(args, "lon", None) or plot_config.get("lon"),
+        "time": args.time or plot_config.get("time"),
+        "time_index": args.time_index or plot_config.get("time_index", 0),
+#        "datafile": getattr(args, "datafile", None) or plot_config.get("datafile"),
+        "directory": args.directory or common_config.get("directory", "."),
+        "no_browser": args.no_browser or common_config.get("no_browser", False),
+    }
 
     return params
+
+
+def _generate_plot(**params):
+    """
+    Generate an ERA5 visualization and optionally open it in a browser.
+
+    Parameters
+    ----------
+    parameter : str
+        ERA5 variable to plot.
+    level : int
+        Pressure level in hPa.
+    time : str, optional
+        Time to plot (YYYYmmddHHMM), by default None
+    time_index : int, optional
+        Time index to plot, by default 0
+    plot_type : str, optional
+        Type of plot: "scalar_wind" (default) or "skewT"
+    no_browser : bool, optional
+        If True, do not open the browser, by default False
+    """
+    
+    plot_type = params.get("plot_type", "scalar_wind")
+
+    if plot_type == "scalar_wind":
+        required = ["parameter", "level", "u", "v"]
+        missing = [k for k in required if k not in params or params[k] is None]
+        if missing:
+            raise ValueError(f"For scalar_wind plots, missing: {', '.join(missing)}")
+
+        html_path = core.write_scalar_with_wind_html(
+            scalar=params["parameter"],
+            u=params["u"],
+            v=params["v"],
+            level=params["level"],
+            time=params.get("time"),
+            time_index=params.get("time_index", 0),
+            directory=params.get("directory"),
+        )
+
+    elif plot_type == "skewT":
+        required = ["lat", "lon", "time"]
+        missing = [k for k in required if k not in params or params[k] is None]
+        if missing:
+            raise ValueError(f"For skewT plots, missing: {', '.join(missing)}")
+
+        html_path = core.write_skewT_html(
+            lat=params["lat"],
+            lon=params["lon"],
+            time=params["time"],
+            directory=params.get("directory"),
+        )
+
+    else:
+        raise ValueError(f"Unknown plot_type '{plot_type}' specified.")
+
+    if params.get("no_browser", False):
+        print("File successfully generated at:", html_path)
+    else:
+        webbrowser.get().open_new_tab(f"file://{html_path}")
