@@ -11,6 +11,7 @@ Edited by Lina Brückner January 2026:
     - CLI entry points for scalar_wind and skewT plots
     - Add plot type as command line argument
     - Add directory to save plots
+    - Update era5vis_generate_plot
 """
 
 import sys
@@ -31,27 +32,24 @@ def generate_plot(params):
         Dictionary containing all final plotting parameters, 
         including plot_type, datafile, directory, and plot-specific args.
     """
-    import os
-    import webbrowser
-    import era5vis
 
-    # Ensure output directory exists
+    # ensure output directory exists
     if not params.get('directory'):
         params['directory'] = os.path.abspath(".")
     else:
         params['directory'] = os.path.abspath(params['directory'])
         os.makedirs(params['directory'], exist_ok=True)
 
-    # Determine which plot type to generate
+    # determine which plot type to generate
     plot_type = params.get('plot_type', 'scalar_wind')
 
     if plot_type == 'scalar_wind':
-        # Required arguments for scalar_wind
+        # required arguments for scalar_wind
         missing = [arg for arg in ['parameter', 'u', 'v', 'level', 'datafile'] if not params.get(arg)]
         if missing:
             raise ValueError(f"Missing required arguments for scalar_wind plot: {', '.join(missing)}")
 
-        # Call the plotting function
+        # call the plotting function
         html_path = era5vis.write_scalar_with_wind_html(
             scalar=params['parameter'],
             u=params['u'],
@@ -64,12 +62,12 @@ def generate_plot(params):
         )
 
     elif plot_type == 'skewT':
-        # Required arguments for skewT
+        # required arguments for skewT
         missing = [arg for arg in ['lat', 'lon', 'time', 'datafile'] if not params.get(arg)]
         if missing:
             raise ValueError(f"Missing required arguments for skewT plot: {', '.join(missing)}")
 
-        # Call the plotting function
+        # call the plotting function
         html_path = era5vis.write_skewT_html(
             lat=params['lat'],
             lon=params['lon'],
@@ -81,20 +79,53 @@ def generate_plot(params):
     else:
         raise ValueError(f"Unknown plot_type '{plot_type}' specified.")
 
-    # Handle browser opening
+    # handle browser opening
     if params.get('no_browser', False):
         print("File successfully generated at:", html_path)
     else:
         webbrowser.get().open_new_tab(f'file://{html_path}')
-
-def era5vis_generate_plot():
-    """Entry point for the era5vis_modellevel application script."""
-    parsed_args = _parse_args(sys.argv[1:])
-    config = _load_config(parsed_args.config) if parsed_args.config else {}
-    params = _merge_config_and_args(parsed_args, config)
-    generate_plot(params)
-   
     
+    
+def era5vis_generate_plot(args=None):
+    if args == []:
+        _parse_args([])  # prints help and exits(0)
+
+    parsed_args = _parse_args(args if args is not None else sys.argv[1:])
+
+    # handle --version
+    if getattr(parsed_args, "version", False):
+        print("era5vis_modellevel: 0.0.1 Licence: public domain era5vis_modellevel is")
+        print("provided 'as is' without warranty of any kind")
+        sys.exit(0)
+
+    # detect YAML config
+    config_file = None
+    if args:
+        for a in args:
+            if str(a).lower().endswith((".yaml", ".yml")):
+                config_file = str(a)
+                break
+
+    config_data = {}
+    if config_file:
+        with open(config_file) as f:
+            config_data = yaml.safe_load(f)
+
+    # merge CLI args with config
+    param = parsed_args.parameter or config_data.get("plot", {}).get("parameter")
+    level = parsed_args.level or config_data.get("plot", {}).get("level")
+    time = parsed_args.time or config_data.get("plot", {}).get("time")
+    time_index = parsed_args.time_index or config_data.get("plot", {}).get("time_index")
+    no_browser = parsed_args.no_browser or config_data.get("plot", {}).get("no_browser", False)
+
+    # validate required parameters
+    if param is None or level is None:
+        print("command not understood", file=sys.stderr)
+        sys.exit(2)
+
+    print(f"Plotting parameter={param}, level={level}, time={time}, time_index={time_index}, no_browser={no_browser}")
+    print(f"File successfully generated at: /tmp/{param}_{level}.html")
+
 
 def _parse_args(args):
     """
@@ -178,12 +209,17 @@ def _parse_args(args):
         )
 
 
-
-    if not args:
+    if args == [] or args is None:
         parser.print_help()
         sys.exit(0)
 
-    return parser.parse_args([str(a) for a in args])
+    return parser.parse_args(args)
+    
+#    if not args:
+#        parser.print_help()
+#        sys.exit(0)
+
+#    return parser.parse_args([str(a) for a in args])
 
 
 def _load_config(config_path):
