@@ -3,7 +3,6 @@
 import xarray as xr
 import numpy as np
 import pandas as pd
-from era5vis import cfg
 
 
 def check_file_availability(datafile):
