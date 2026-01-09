@@ -8,7 +8,7 @@ Edited by Leah Herrfurth, December 2025:
     - Using argparse instead of sys.args
     - Adding config-based plotting
 Edited by Lina Brückner, January 2026:
-    - Adding parser arguments plot type and directory
+    - Adding parser arguments plot type and directory, u1, u2, lon and lat
     - Adding new parser arguments in _merge_config_and_args()
     - Update of _generate_plot() for the two different plot types
 """
@@ -122,6 +122,26 @@ def _parse_args(args):
         help=("Directory where the HTML file will be saved (overrides config)"
         )
     )
+    parser.add_argument(
+        "-u1", "--horizontal wind",
+        help=("Horizontal wind component in m s$^{-1}$"
+        )
+    )
+    parser.add_argument(
+        "-u2", "--meridional wind",
+        help=("Meridional wind component in m s$^{-1}$"
+        )
+    )
+    parser.add_argument(
+        "-lat", "--latitude",
+        help=("Latitude in degrees"
+        )
+    )
+    parser.add_argument(
+        "-lon", "--longitude",
+        help=("Longitude in degrees"
+        )
+    )
 
     if not args:
         parser.print_help()
@@ -188,7 +208,6 @@ def _merge_config_and_args(args, config):
         "lon": getattr(args, "lon", None) or plot_config.get("lon"),
         "time": args.time or plot_config.get("time"),
         "time_index": args.time_index or plot_config.get("time_index", 0),
-#        "datafile": getattr(args, "datafile", None) or plot_config.get("datafile"),
         "directory": args.directory or common_config.get("directory", "."),
         "no_browser": args.no_browser or common_config.get("no_browser", False),
     }
