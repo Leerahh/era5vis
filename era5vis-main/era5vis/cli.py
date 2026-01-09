@@ -123,12 +123,14 @@ def _parse_args(args):
         )
     )
     parser.add_argument(
-        "-u1", "--horizontal wind",
+        "-u1", "--horizontal_wind",
+        dest="u",
         help=("Horizontal wind component in m s$^{-1}$"
         )
     )
     parser.add_argument(
-        "-u2", "--meridional wind",
+        "-u2", "--meridional_wind",
+        dest="v",
         help=("Meridional wind component in m s$^{-1}$"
         )
     )
@@ -202,8 +204,8 @@ def _merge_config_and_args(args, config):
         "plot_type": plot_type,
         "parameter": args.parameter or plot_config.get("parameter"),
         "level": args.level or plot_config.get("level"),
-        "u": getattr(args, "u", None) or plot_config.get("u"),
-        "v": getattr(args, "v", None) or plot_config.get("v"),
+        "u1": getattr(args, "u", None) or plot_config.get("u"),
+        "u2": getattr(args, "v", None) or plot_config.get("v"),
         "lat": getattr(args, "lat", None) or plot_config.get("lat"),
         "lon": getattr(args, "lon", None) or plot_config.get("lon"),
         "time": args.time or plot_config.get("time"),
@@ -238,15 +240,15 @@ def _generate_plot(**params):
     plot_type = params.get("plot_type", "scalar_wind")
 
     if plot_type == "scalar_wind":
-        required = ["parameter", "level", "u", "v"]
+        required = ["parameter", "level", "u1", "u2"]
         missing = [k for k in required if k not in params or params[k] is None]
         if missing:
             raise ValueError(f"For scalar_wind plots, missing: {', '.join(missing)}")
 
         html_path = core.write_scalar_with_wind_html(
             scalar=params["parameter"],
-            u=params["u"],
-            v=params["v"],
+            u=params["u1"],
+            v=params["u2"],
             level=params["level"],
             time=params.get("time"),
             time_index=params.get("time_index", 0),
