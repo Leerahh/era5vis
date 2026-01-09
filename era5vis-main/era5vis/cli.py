@@ -246,33 +246,33 @@ def _merge_config_and_args(args, config):
     Returns a final params dict.
     """
 
-    # Determine plot type: CLI arg overrides config
+    # determine plot type: CLI arg overrides config
     plot_type = args.plot_type or config.get("plot_type", "scalar_wind")
 
-    # Get plot-type-specific section from config
+    # get plot-type-specific section from config
     plot_config = config.get(plot_type, {})
 
-    # Get common parameters from config
+    # get common parameters from config
     common_config = config.get("common", {})
 
-    # Start with common + plot-specific config
+    # start with common + plot-specific config
     params = {**common_config, **plot_config}
 
-    # Override with CLI args if provided
+    # override with CLI args if provided
     cli_args = vars(args)
     for k, v in cli_args.items():
         if v is not None:
             params[k] = v
 
-    # Always store plot_type
+    # always store plot_type
     params["plot_type"] = plot_type
 
-    # Make datafile absolute **relative to YAML file** if provided
+    # make datafile absolute relative to YAML file if provided
     if "datafile" in params and args.config:
         yaml_dir = Path(args.config).parent
         params["datafile"] = str((yaml_dir / params["datafile"]).resolve())
 
-    # Ensure directory exists
+    # ensure directory exists
     if "directory" not in params or not params["directory"]:
         params["directory"] = str(Path(".").resolve())
     else:
