@@ -101,7 +101,7 @@ def _parse_args(args):
         )
     )
     parser.add_argument(
-        "--plot_type",
+        "pl", "--plot_type",
         choices=["scalar_wind","skewT"],
         type=str,
         default="scalar_wind",
