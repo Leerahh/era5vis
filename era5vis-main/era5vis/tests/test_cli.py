@@ -1,14 +1,15 @@
 """ Test functions for cli 
-Edited by Leah Herrfurth December 2025
+Edited by Leah Herrfurth, December 2025:
     - Using parametrized pytest to test the CLI functions
-    - Adding config testcases    
+    - Adding config testcases 
+Edited by Lina Brückner, January 2026:
+    - import era5vis_generate_plot as modellevel
 """
+
 import pytest
 import yaml
-from pathlib import Path
 import era5vis
-from era5vis.cli import modellevel
-
+from era5vis.cli import era5vis_generate_plot as modellevel
 
 
 @pytest.mark.parametrize("args", [
