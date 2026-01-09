@@ -214,12 +214,6 @@ def _parse_args(args):
         sys.exit(0)
 
     return parser.parse_args(args)
-    
-#    if not args:
-#        parser.print_help()
-#        sys.exit(0)
-
-#    return parser.parse_args([str(a) for a in args])
 
 
 def _load_config(config_path):
