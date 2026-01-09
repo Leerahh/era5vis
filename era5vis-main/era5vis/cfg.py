@@ -13,3 +13,6 @@ html_template = Path(pkgdir) / 'data' / 'template.html'
 
 scalar_wind_datafile = Path(pkgdir) / 'data' / 'era5_example_dataset.nc'
 skewT_datafile      = Path(pkgdir) / 'data' / 'era5_example_1.nc'
+datafile = Path.cwd() / 'era5_download.nc'
+#Path(pkgdir) / 'data' / 'era5_example_dataset.nc'
+#sdownloaded_datafile = Path.cwd() / 'era5_download.nc'

@@ -9,6 +9,7 @@ from tempfile import mkdtemp
 import shutil
 
 from era5vis import cfg, graphics, era5
+from era5vis.data_download import download_era5
 
 
 def mkdir(path, reset=False):
@@ -57,6 +58,11 @@ def write_scalar_with_wind_html(
     era5.check_file_availability(datafile)
     for var in (scalar, u, v):
         era5.check_data_availability(var, level=level, time=time, datafile=datafile)
+    download_era5.download_era5_data()
+        
+    # check that dataset actually contains the selected variable, time, ...
+    era5.check_file_availability()
+    era5.check_data_availability(var, level=level, time=time, time_ind=time_index)
 
     # create a temporary directory for the plot
     if directory is None:
