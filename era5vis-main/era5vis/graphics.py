@@ -1,4 +1,4 @@
-"""Plot geopotential with wind barbs on a map."""
+"""Plot geopotential with wind barbs on a map. Plot SkewT diagram for selected location."""
 
 from datetime import datetime
 import matplotlib.pyplot as plt
