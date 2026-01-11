@@ -24,6 +24,9 @@ import json
 from pathlib import Path
 from era5vis.data_access.download_era5 import download_era5_data
 from era5vis.data_access.era5_request import Era5Request
+from era5vis import modellevel
+
+
 
 
 def analysis_plots(args):
@@ -36,7 +39,11 @@ def analysis_plots(args):
 
     params = _merge_config_and_args(parsed_args, config)
 
-    _generate_plot(**params)
+    try:
+        era5vis.modellevel.run_modellevel(**params)
+    except ValueError as e:
+        print(f"Error: {e}")
+        sys.exit(1)
 
 
 def era5vis_analysis_plots():
@@ -316,7 +323,7 @@ def _generate_plot(params, level, time=None, time_index=0, no_browser=False, dow
     datafile = None
     if download_data:
         datafile = _download_era5_data(
-            parameter=params["parameter"],
+            parameter=params,
             level=level,
             time=time,
             time_index=time_index
