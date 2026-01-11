@@ -19,6 +19,11 @@ import argparse
 import yaml
 import era5vis
 from . import core
+import hashlib
+import json
+from pathlib import Path
+from era5vis.data_access.download_era5 import download_era5_data
+from era5vis.data_access.era5_request import Era5Request
 
 
 def analysis_plots(args):
@@ -143,6 +148,14 @@ def _parse_args(args):
         )
     )
 
+    parser.add_argument(
+        "--download-data",
+        action="store_true",
+        help=(
+            "Download the needed ERA5 data for the specified parameter and level"
+        )
+    )
+
     if not args:
         parser.print_help()
         sys.exit(0)
@@ -210,12 +223,67 @@ def _merge_config_and_args(args, config):
         "time_index": args.time_index or plot_config.get("time_index", 0),
         "directory": args.directory or common_config.get("directory", "."),
         "no_browser": args.no_browser or common_config.get("no_browser", False),
-    }
+        "download_data": args.download_data or plot_config.get("download_data", False),
+  }
 
     return params
 
+def _download_era5_data(parameter, level, time=None, time_index=0):
+    """
+    Download ERA5 data for the specified parameter and level.
 
-def _generate_plot(**params):
+    Parameters
+    ----------
+    parameter : str
+        ERA5 variable to download.
+    level : int
+        Pressure level in hPa.
+    time : str, optional
+        Time to download (YYYYmmddHHMM), by default None
+    """
+
+    request = Era5Request(
+        product_type=["reanalysis"],
+        variable=[parameter],
+        year=[time[0:4]] if time else ["2025"],
+        month=[time[4:6]] if time else ["03"],
+        day=[time[6:8]] if time else ["02", "03", "04"],
+        time=[f"{time[8:10]}:00"] if time else [
+            "00:00", "01:00", "02:00",
+            "03:00", "04:00", "05:00",
+            "06:00", "07:00", "08:00",
+            "09:00", "10:00", "11:00",
+            "12:00", "13:00", "14:00",
+            "15:00", "16:00", "17:00",
+            "18:00", "19:00", "20:00",
+            "21:00", "22:00", "23:00"
+        ],
+        pressure_level=[str(level)],
+        data_format="netcdf",
+        download_format="unarchived",
+        area=[70, -20, -30, 50]
+    )
+
+
+    req_dict = request.to_dict()  # if not available, build dict manually
+    hash = _request_hash(req_dict)
+
+    target = Path.cwd() / f"era5_{hash}.nc"
+
+    if target.exists():
+        print(f"Using cached ERA5 data: {target}")
+        return target
+
+    print("Downloading ERA5 data...")
+    download_era5_data(request.to_dict(), target=target)
+    if not target.exists():
+        raise RuntimeError(
+            f"ERA5 download reported success but file was not found: {target}"
+        )
+    return target
+
+
+def _generate_plot(params, level, time=None, time_index=0, no_browser=False, download_data=False):
     """
     Generate an ERA5 visualization and optionally open it in a browser.
 
@@ -245,6 +313,19 @@ def _generate_plot(**params):
         Longitude in degrees
     """
     
+    datafile = None
+    if download_data:
+        datafile = _download_era5_data(
+            parameter=params["parameter"],
+            level=level,
+            time=time,
+            time_index=time_index
+        )
+    else: 
+        datafile = era5vis.cfg.example_datafile
+    era5vis.cfg.set_datafile(datafile)
+
+
     plot_type = params.get("plot_type", "scalar_wind")
 
     # define required parameters according to plot type
@@ -284,3 +365,9 @@ def _generate_plot(**params):
         print("File successfully generated at:", html_path)
     else:
         webbrowser.get().open_new_tab(f"file://{html_path}")
+
+
+
+def _request_hash(request: dict) -> str:
+    payload = json.dumps(request, sort_keys=True).encode()
+    return hashlib.sha256(payload).hexdigest()[:12]

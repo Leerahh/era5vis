@@ -9,7 +9,7 @@ from tempfile import mkdtemp
 import shutil
 
 from era5vis import cfg, graphics, era5
-from era5vis.data_download import download_era5
+from era5vis.data_access import download_era5
 
 
 def mkdir(path, reset=False):
