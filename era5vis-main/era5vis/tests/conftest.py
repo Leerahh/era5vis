@@ -14,8 +14,16 @@ from datetime import datetime
 import pytest
 import xarray as xr
 import yaml
-
 from era5vis import cfg
+
+
+@pytest.fixture(scope="session", autouse=True)
+def ensure_datafile():
+    # Set datafile if it hasn't been set yet
+    if cfg.example_datafile.exists():
+        cfg.set_datafile(cfg.example_datafile)
+    else:
+        pytest.skip("No ERA5 example dataset available for tests.")
 
 
 @pytest.fixture
