@@ -23,7 +23,7 @@ def check_file_availability(datafile):
 def check_data_availability(param, level=None, time=None, time_ind=None, datafile=None):
      with xr.open_dataset(datafile).load() as ds:
         
-        # --- check variable ---
+        # check variable
         if param not in ds.variables:
             raise KeyError(
                 f"Variable '{param}' not found in data file. "
@@ -32,7 +32,7 @@ def check_data_availability(param, level=None, time=None, time_ind=None, datafil
 
         da = ds[param]
 
-        # --- check model level ---
+        # check model level
         if level is not None:
             if "pressure_level" not in da.dims:
                 raise KeyError(
@@ -45,14 +45,14 @@ def check_data_availability(param, level=None, time=None, time_ind=None, datafil
                     f"Available levels: {da['pressure_level'].values}"
                 )
 
-            # --- check time by value ---
+            # check time by value
         if time is not None:
             if "valid_time" not in da.dims:
                 raise KeyError(
                     f"Variable '{param}' has no valid_time dimension."
                 )
 
-            # normalize user input → numpy.datetime64
+            # normalize user input (numpy.datetime64)
             try:
                 time_dt = np.datetime64(pd.to_datetime(time))
             except Exception:
@@ -69,7 +69,7 @@ def check_data_availability(param, level=None, time=None, time_ind=None, datafil
                 )
 
             
-        # --- check time by index ---
+        # check time by index
         if time_ind is not None:
             if "valid_time" not in da.dims:
                 raise KeyError(
