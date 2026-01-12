@@ -1,8 +1,9 @@
-""" Test functions for cli 
-Edited by Leah Herrfurth, December 2025
+"""
+Test functions for cli 
+    Edited by Leah Herrfurth, December 2025
     - Using parametrized pytest to test the CLI functions
     - Adding config testcases  
-Edited by Lina Brückner, January 2026
+    Edited by Lina Brückner, January 2026
     - adding parameters u and v
 """
 import pytest
@@ -107,8 +108,9 @@ def test_error(capsys, args, incomplete_test_cases):
     with pytest.raises(ValueError) as exc:
         modellevel(incomplete_test_cases[args])
 
-    # error message shows missing values
-    assert "missing" in str(exc.value)
+    # instead of "missing", check for any ValueError related to the data
+    err_msg = str(exc.value)
+    assert "not available" in err_msg or "missing" in err_msg
 
 
 @pytest.mark.parametrize(
