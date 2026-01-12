@@ -1,4 +1,8 @@
-"""Plot geopotential with wind barbs on a map. Plot SkewT diagram for selected location."""
+"""
+Plot geopotential with wind barbs on a map. Plot SkewT diagram for selected location.
+Updated by Lina Brückner, January 2026:
+    - adding plot_scalar_with_wind and plot_skewT
+"""
 
 from datetime import datetime
 import matplotlib.pyplot as plt
@@ -11,7 +15,8 @@ from metpy.units import units
 import metpy.calc as mpcalc
 
 def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
-    '''Plot scalar as contours and wind barbs on top.
+    '''
+    Plot scalar as contours and wind barbs on top.
 
     Parameters
     ----------
@@ -35,6 +40,7 @@ def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
     if step < 1:  # prevent step=0
         step = 1
 
+    # initiate figure
     fig = plt.figure(figsize=(8, 6))
     ax = plt.axes(projection=ccrs.PlateCarree())
     ax.set_xlabel('Longitude')
@@ -63,7 +69,6 @@ def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
         pu.latitude,
         pu,
         pv,
-        #length=6,
         pivot='middle',
         transform=ccrs.PlateCarree()
     )
@@ -79,10 +84,9 @@ def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
     gl.xformatter = LongitudeFormatter()
     gl.yformatter = LatitudeFormatter()
 
-    
+    # save figure
     if savepath is None:
         time_safe = str(time).replace(":", "-").replace(" ", "_")
-        #filename = f'era5_{scalar}_wind_level{level}.png'
         filename = f"scalar_wind_{da.name}_{da.pressure_level.to_numpy()}_{time_safe}.png"
         fig.savefig(filename, bbox_inches='tight')
         plt.close(fig)
@@ -96,7 +100,7 @@ def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
 def plot_skewT(lat, lon, time, datafile, variables=None, savepath=None, curve=None):
     '''
     Plot a full Skew-T diagram for a given location and time from ERA5 data,
-    including temperature, dewpoint, wind barbs, reference lines, and optional curve.
+    including temperature, dewpoint, wind barbs and reference lines.
 
     Parameters
     ----------
@@ -111,9 +115,6 @@ def plot_skewT(lat, lon, time, datafile, variables=None, savepath=None, curve=No
         {'T': 't2m', 'Td': 'd2m', 'u': 'u10', 'v': 'v10', 'p': 'msl'}
     savepath : str, optional
         Path to save figure
-    curve : dict, optional
-        Optional curve to overlay, e.g.,
-        {'p': pressure_array, 'T': temperature_array, 'label': 'Parcel Path', 'color': 'purple'}
     '''
 
     # default variable names
@@ -127,18 +128,20 @@ def plot_skewT(lat, lon, time, datafile, variables=None, savepath=None, curve=No
             }
 
     with xr.open_dataset(datafile) as ds:
-    # select nearest lat/lon
+        # select nearest lat/lon
         T = ds[variables['T']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
         q = ds[variables['q']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
         u = ds[variables['u']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
         v = ds[variables['v']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
         p = ds[variables['p']]
 
+        # convert variable units
         T = T.values * units.kelvin
         u = u.values * units('m/s')
         v = v.values * units('m/s')
         p = p.values * units.hPa
-    
+
+        # calculate dewpoint if not available in dataset
         if 'Td' in variables:
             Td = ds[variables['Td']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
             Td = Td.values * units.kelvin
@@ -164,7 +167,7 @@ def plot_skewT(lat, lon, time, datafile, variables=None, savepath=None, curve=No
     skew.ax.set_xlabel('Temperature [°C]')
     skew.ax.set_ylabel('Pressure [hPa]')
 
-    # Add reference lines
+    # add reference lines
     skew.plot_dry_adiabats()
     skew.plot_moist_adiabats()
     skew.plot_mixing_lines()
@@ -177,9 +180,10 @@ def plot_skewT(lat, lon, time, datafile, variables=None, savepath=None, curve=No
     ax_hod.set_xlabel('Wind speed [m s$^{-1}$]')
     ax_hod.set_ylabel('Wind speed [m s$^{-1}$]')
 
-    # title
+    # add figure title
     skew.ax.set_title(f"Skew-T at '{lat:.2f}'N, '{lon:.2f}'E ('{time}')", fontsize=12)
 
+    # save figure
     if savepath is None:
         time_safe = str(time).replace(":", "-").replace(" ", "_")
         filename = f"SkewT_{lat:.2f}_{lon:.2f}_{time_safe}.png"
