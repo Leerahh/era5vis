@@ -200,13 +200,13 @@ def _merge_config_and_args(args, config):
     # merge CLI args with YAML: CLI overrides YAML
     params = {
         "plot_type": plot_type,
-        "parameter": args.parameter or plot_config.get("parameter"),
-        "level": args.level or plot_config.get("level"),
-        "u1": getattr(args, "u", None) or plot_config.get("u"),
-        "u2": getattr(args, "v", None) or plot_config.get("v"),
+        "parameter": args.parameter or plot_config.get("parameter") or "z",
+        "level": args.level or plot_config.get("level") or 500,
+        "u1": getattr(args, "u", None) or plot_config.get("u") or "u",
+        "u2": getattr(args, "v", None) or plot_config.get("v") or "v",
         "lat": getattr(args, "lat", None) or plot_config.get("lat"),
         "lon": getattr(args, "lon", None) or plot_config.get("lon"),
-        "time": args.time or plot_config.get("time"),
+        "time": args.time or plot_config.get("time") or common_config.get("time"),
         "time_index": args.time_index or plot_config.get("time_index", 0),
         "directory": args.directory or common_config.get("directory", "."),
         "no_browser": args.no_browser or common_config.get("no_browser", False),
