@@ -9,8 +9,8 @@ Edited by Leah Herrfurth, December 2025:
     - Adding config-based plotting
 Edited by Lina Brückner, January 2026:
     - Adding parser arguments plot type and directory, u1, u2, lon and lat
-    - Adding new parser arguments in _merge_config_and_args()
-    - Update of _generate_plot() for the two different plot types
+    - Implementing new parser arguments in _merge_config_and_args()
+    - Updating _generate_plot() for the two different plot types
 """
 
 import sys
@@ -19,8 +19,6 @@ import argparse
 import yaml
 import era5vis
 from . import core
-
-
 
 
 def modellevel(args):
@@ -102,7 +100,7 @@ def _parse_args(args):
     )
     parser.add_argument(
         "-pl", "--plot_type",
-        choices=["scalar_wind","skewT"],
+        choices=["scalar_wind", "skewT"],
         type=str,
         default="scalar_wind",
         help=("Select either scalar_wind or skewT"
@@ -235,10 +233,21 @@ def _generate_plot(**params):
         Type of plot: "scalar_wind" (default) or "skewT"
     no_browser : bool, optional
         If True, do not open the browser, by default False
+    directory : str, optional
+        Directory where the HTML file will be saved (overrides config)
+    horizontal_wind: float, required for scalar_wind
+        Horizontal wind component in m s$^{-1}$
+    meridional_wind: float, required for scalar_wind
+        Meridional wind component in m s$^{-1}$
+    latitude: float, required for skewT
+        Latitude in degrees
+    longitude: float, required for skewT
+        Longitude in degrees
     """
     
     plot_type = params.get("plot_type", "scalar_wind")
 
+    # define required parameters according to plot type
     if plot_type == "scalar_wind":
         required = ["parameter", "level", "u1", "u2"]
         missing = [k for k in required if k not in params or params[k] is None]
