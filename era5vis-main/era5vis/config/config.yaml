@@ -1,11 +1,14 @@
-plot:
-  parameter: z
-  level: 500
-  time: 
+plot_type: scalar_wind  # default plot type
 
-  
+scalar_wind:
+  datafile: "../data/era5_example_dataset.nc"
 
+skewT:
+  lat: 48.21
+  lon: 16.37
+  datafile: "../data/era5_example_1.nc"
 
-
-
-
+common:
+  no_browser: true
+  directory: "./"
+  time: 2025-10-01T00:00

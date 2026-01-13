@@ -1,4 +1,8 @@
-"""Plenty of useful functions doing useful things.  """
+"""
+Plenty of useful functions doing useful things.
+Updated by Lina Brückner, January 2026:
+     - adding write_scalar_with_wind_html and write skewT_html
+"""
 
 from pathlib import Path
 from tempfile import mkdtemp
@@ -8,77 +12,137 @@ from era5vis import cfg, graphics, era5
 
 
 def mkdir(path, reset=False):
-    """Check if directory exists and if not, create one.
+    '''
+    Check if directory exists and if not, create one.
         
     Parameters
     ----------
     path: str
         path to directory
-    reset: bool 
-        erase the content of the directory if it exists
+    reset: bool
+        erase the content of the directory if it exists, default is False
 
     Returns
     -------
     path: str
         path to directory
-    """
+    '''
     
     if reset and Path.is_dir(path):
         shutil.rmtree(path)
     try:
         Path.mkdir(path, parents=True)
     except FileExistsError:
+        # directory already exists and reset=False
         pass
     return path
 
 
-def write_html(param, level=None, time=None, time_ind=None, directory=None):
-    """ Create HTML with ERA5 plot 
-    
-    Returns
-    -------
-    param : str
-        variable name to plot
-    level : int
-        pressure level for horizontal cross section plot
-    time : str
-        time for horizontal cross section plot
-    time_ind : int
-        time index for horizontal cross section plot (time takes 
-        precedence if both time and time_ind are set)
-    """
+def write_scalar_with_wind_html(
+    scalar, u, v, level, time=None, time_index=None, directory=None, step=9, datafile=None
+):
+    '''
+    Create HTML for scalar field with wind vectors.
+    '''
 
-    
-    # check that dataset actually contains the selected variable, time, ...
-    era5.check_file_availability()
-    era5.check_data_availability(param, level=level, time=time, time_ind=time_ind)
+    # fallback for time selection
+    if time is None:
+        time = time_index
+
+    # default data file from configuration
+    if datafile is None:
+        datafile = cfg.scalar_wind_datafile
+        
+    # check that dataset actually contains the selected parameters
+    era5.check_file_availability(datafile)
+    for var in (scalar, u, v):
+        era5.check_data_availability(var, level=level, time=time, datafile=datafile)
 
     # create a temporary directory for the plot
     if directory is None:
         directory = mkdtemp()
     mkdir(directory)
 
-    print('Extracting horizontal cross-section')
-    if time is not None:
-        hcross = era5.horiz_cross_section(param, level, time)
-    elif time_ind is not None:
-        hcross = era5.horiz_cross_section(param, level, time_ind)
-   
-    print('Plotting data')
-    png = Path(directory) / f'era5_{param}_level{level}.png'
-    graphics.plot_horiz_cross_section(hcross, filepath=png)
+    print('Extracting data')
 
-    # create HTML from template
+    # load data
+    da = era5.horiz_cross_section(scalar, level, time, datafile)
+    u_da = era5.horiz_cross_section(u, level, time, datafile)
+    v_da = era5.horiz_cross_section(v, level, time, datafile)
+
+    print('Plotting data')
+
+    # create filename-safe timestamp
+    time_safe = str(time).replace(':', '-').replace(' ', '_')
+    png = Path(directory) / f'scalar_wind_{scalar}_{level}_{time_safe}.png'
+
+    # generate plot
+    graphics.plot_scalar_with_wind(
+        da, u_da, v_da, savepath=png, step=step
+    )
+
+    # create HTML output from template
+    outpath = Path(directory) / 'index.html'
+    with open(cfg.html_template) as infile:
+        template = infile.read()
+
+    html = (
+        template
+        .replace('[PLOTTYPE]', 'Scalar field with wind')
+        .replace('[PLOTVAR]', scalar)
+        .replace('[IMGTYPE]', png.name)
+    )
+
+    with open(outpath, 'w') as infile:
+        infile.write(html)
+
+    return outpath
+
+def write_skewT_html(
+    lat, lon, time, datafile=None, directory=None, **kwargs
+):
+    '''
+    Create HTML for a Skew-T diagram.
+    '''
+
+    # fallback for time selection
+    if datafile is None:
+        datafile = cfg.skewT_datafile
+
+    # default data file from configuration
+    if directory is None:
+        directory = mkdtemp()
+    mkdir(directory)
+
+    print('Plotting Skew-T')
+
+    # create filename-safe timestamp
+    time_safe = str(time).replace(':', '-').replace(' ', '_')
+    png = Path(directory) / f'SkewT_{lat:.2f}_{lon:.2f}_{time_safe}.png'
+
+    # generate plot
+    graphics.plot_skewT(
+        lat=lat,
+        lon=lon,
+        time=time,
+        datafile=datafile,
+        savepath=png,
+        **kwargs
+    )
+
+    # generate HTML output from template
     outpath = Path(directory) / 'index.html'
     with open(cfg.html_template, 'r') as infile:
         lines = infile.readlines()
-        out = []
-        for txt in lines:
-            txt = txt.replace('[PLOTTYPE]', 'Horizontal cross-section')
-            txt = txt.replace('[PLOTVAR]', param)
-            txt = txt.replace('[IMGTYPE]', png.name)
-            out.append(txt)
-        with open(outpath, 'w') as outfile:
-            outfile.writelines(out)
+
+    out = []
+    for txt in lines:
+        txt = txt.replace('[PLOTTYPE]', 'Skew-T diagram')
+        txt = txt.replace('[PLOTVAR]', f'{lat:.2f}°, {lon:.2f}° @ {time}')
+        txt = txt.replace('[IMGTYPE]', png.name)
+        out.append(txt)
+
+    with open(outpath, 'w') as outfile:
+        outfile.writelines(out)
 
     return outpath

@@ -1,8 +1,12 @@
 """
 Fixtures used in ERA5vis tests.
 
-Edited by Leah Herrfurth December 2025:
+Edited by Leah Herrfurth, December 2025:
     - Added fixtures to create incomplete config files and combine CLI/config test cases
+Edited by Lina Brückner, January 2026:
+    - adding def datafile()
+    - updating def retrieve_param_level_time_from_ds()
+    - adding def retrieve_param_level_time_wind_from_ds()
 """
 
 from datetime import datetime
@@ -15,32 +19,45 @@ from era5vis import cfg
 
 
 @pytest.fixture
+def datafile():
+    # return the scalar_wind dataset for testing
+    return str(cfg.scalar_wind_datafile)  # path must be str for xarray
+
+@pytest.fixture
 def retrieve_param_level_from_ds():
 
     # retrieve variable name and level from the dataset to make sure 
     # that we don't call the function with bad arguments
-    with xr.open_dataset(cfg.datafile) as ds:
-        param = [variable for variable in ds.variables if
-                 ("pressure_level" in ds[variable].dims) and ("longitude" in ds[variable].dims)][0]
-        level = ds.pressure_level.to_numpy()[0].astype(int)
-
+    with xr.open_dataset(cfg.scalar_wind_datafile) as ds:
+        param = [v for v in ds.variables if ("pressure_level" in ds[v].dims) and ("longitude" in ds[v].dims)][0]
+        level = int(ds.pressure_level.values[0])
+    
     return param, level
-
+    
 
 @pytest.fixture
 def retrieve_param_level_time_from_ds():
 
     # retrieve variable name, level, and time from the dataset to make sure 
     # that we don't call the function with bad arguments
-    with xr.open_dataset(cfg.datafile) as ds:
-        param = [variable for variable in ds.variables if
-                 ("pressure_level" in ds[variable].dims) and ("longitude" in ds[variable].dims)][0]
-        level = ds.pressure_level.to_numpy()[0].astype(int)
-        time = ds.valid_time.to_numpy()[0].astype(
-               "datetime64[ms]").astype(datetime).strftime("%Y%m%d%H%M")
-
+    with xr.open_dataset(cfg.scalar_wind_datafile) as ds:
+        param = [v for v in ds.variables if ("pressure_level" in ds[v].dims) and ("longitude" in ds[v].dims)][0]
+        level = int(ds.pressure_level.values[0])
+        time = ds.valid_time.values[0].astype("datetime64[ms]").astype(datetime).strftime("%Y%m%d%H%M")
+    
     return param, level, time
 
+@pytest.fixture
+def retrieve_param_level_time_wind_from_ds():
+
+    with xr.open_dataset(cfg.scalar_wind_datafile) as ds:
+        param = [v for v in ds.variables if ("pressure_level" in ds[v].dims) and ("longitude" in ds[v].dims)][0]
+        level = int(ds.pressure_level.values[0])
+        time = ds.valid_time.values[0].astype("datetime64[ms]").astype(datetime).strftime("%Y%m%d%H%M")
+        u = ds.u
+        v = ds.v
+    
+    return param, level, time, u, v
 
 @pytest.fixture
 def temp_incomplete_config_files(tmp_path, retrieve_param_level_time_from_ds):
@@ -122,7 +139,7 @@ def make_incomplete_test_cases(retrieve_param_level_time_from_ds, temp_config_fi
     cases.append(["-p", str(param), "--no-browser"])
     cases.append(["-lvl", str(level), "--no-browser"])
 
-    # Config-only incomplete cases
+    # config-only incomplete cases
     for config_file in temp_config_files:
         cases.append([str(config_file)])
 

@@ -4,9 +4,13 @@ Command line tools for ERA5vis.
 Manuela Lehner
 November 2025
 
-Edited by Leah Herrfurth December 2025:
+Edited by Leah Herrfurth, December 2025:
     - Using argparse instead of sys.args
     - Adding config-based plotting
+Edited by Lina Brückner, January 2026:
+    - Adding parser arguments plot type and directory, u1, u2, lon and lat
+    - Implementing new parser arguments in _merge_config_and_args()
+    - Updating _generate_plot() for the two different plot types
 """
 
 import sys
@@ -14,12 +18,11 @@ import webbrowser
 import argparse
 import yaml
 import era5vis
+from . import core
 
 
-
-
-def modellevel(args):
-    """Main entry function for the era5vis_modellevel CLI tool."""
+def analysis_plots(args):
+    """Main entry function for the era5vis_analysis_plots CLI tool."""
     parsed_args = _parse_args(args)
 
     config = {}
@@ -31,14 +34,14 @@ def modellevel(args):
     _generate_plot(**params)
 
 
-def era5vis_modellevel():
-    """Entry point for the era5vis_modellevel application script."""
-    modellevel(sys.argv[1:])
+def era5vis_analysis_plots():
+    """Entry point for the era5vis_analysis_plots application script."""
+    analysis_plots(sys.argv[1:])
 
 
 def _parse_args(args):
     """
-    Parse command-line arguments for era5vis_modellevel.
+    Parse command-line arguments for era5vis_analysis_plots.
 
     Parameters
     ----------
@@ -51,8 +54,8 @@ def _parse_args(args):
         Parsed arguments.
     """
     parser = argparse.ArgumentParser(
-        prog="era5vis_modellevel",
-        description="Visualization of ERA5 at a given model level."
+        prog="era5vis_analysis_plots",
+        description="Visualization of ERA5 analysis plots."
     )
 
     parser.add_argument(
@@ -64,9 +67,9 @@ def _parse_args(args):
         "-v", "--version",
         action="version",
         version=(
-            f"era5vis_modellevel: {era5vis.__version__}\n"
+            f"era5vis_analysis_plots: {era5vis.__version__}\n"
             "Licence: public domain\n"
-            "era5vis_modellevel is provided 'as is' without warranty of any kind"
+            "era5vis_analysis_plots is provided 'as is' without warranty of any kind"
         )
     )
     parser.add_argument(
@@ -96,11 +99,47 @@ def _parse_args(args):
         )
     )
     parser.add_argument(
+        "-pl", "--plot_type",
+        choices=["scalar_wind", "skewT"],
+        type=str,
+        default="scalar_wind",
+        help=("Select either scalar_wind or skewT"
+        )
+    )
+    parser.add_argument(
         "--no-browser",
         action="store_true",
         help=(
             "Do not open a browser with the newly generated visualization, "
             "just print the path to the HTML file instead"
+        )
+    )
+    parser.add_argument(
+        "--directory",
+        metavar="DIR",
+        help=("Directory where the HTML file will be saved (overrides config)"
+        )
+    )
+    parser.add_argument(
+        "-u1", "--horizontal_wind",
+        dest="u",
+        help=("Horizontal wind component in m s$^{-1}$"
+        )
+    )
+    parser.add_argument(
+        "-u2", "--meridional_wind",
+        dest="v",
+        help=("Meridional wind component in m s$^{-1}$"
+        )
+    )
+    parser.add_argument(
+        "-lat", "--latitude",
+        help=("Latitude in degrees"
+        )
+    )
+    parser.add_argument(
+        "-lon", "--longitude",
+        help=("Longitude in degrees"
         )
     )
 
@@ -131,7 +170,6 @@ def _load_config(config_path):
     with open(config_path, "r") as f:
         return yaml.safe_load(f)
 
-
 def _merge_config_and_args(args, config):
     """
     Merge command-line arguments with configuration file values.
@@ -150,18 +188,34 @@ def _merge_config_and_args(args, config):
     dict
         Final parameters for plotting.
     """
-    plot_config = config.get("plot", {}) if config else {}
+    # determine plot type: CLI argument overrides YAML
+    plot_type = args.plot_type or config.get("plot_type", "scalar_wind")
 
-    return {
-        "parameter": args.parameter or plot_config.get("parameter"),
-        "level": args.level or plot_config.get("level"),
-        "time": args.time or plot_config.get("time"),
-        "time_index": args.time_index or plot_config.get("time_ind", 0),
-        "no_browser": args.no_browser or plot_config.get("no_browser", False),
+    # get plot-type-specific config section
+    plot_config = config.get(plot_type, {}) if config else {}
+
+    # get common config
+    common_config = config.get("common", {}) if config else {}
+
+    # merge CLI args with YAML: CLI overrides YAML
+    params = {
+        "plot_type": plot_type,
+        "parameter": args.parameter or plot_config.get("parameter") or "z",
+        "level": args.level or plot_config.get("level") or 500,
+        "u1": getattr(args, "u", None) or plot_config.get("u") or "u",
+        "u2": getattr(args, "v", None) or plot_config.get("v") or "v",
+        "lat": getattr(args, "lat", None) or plot_config.get("lat"),
+        "lon": getattr(args, "lon", None) or plot_config.get("lon"),
+        "time": args.time or plot_config.get("time") or common_config.get("time"),
+        "time_index": args.time_index or plot_config.get("time_index", 0),
+        "directory": args.directory or common_config.get("directory", "."),
+        "no_browser": args.no_browser or common_config.get("no_browser", False),
     }
 
+    return params
 
-def _generate_plot(parameter, level, time=None, time_index=0, no_browser=False):
+
+def _generate_plot(**params):
     """
     Generate an ERA5 visualization and optionally open it in a browser.
 
@@ -175,25 +229,58 @@ def _generate_plot(parameter, level, time=None, time_index=0, no_browser=False):
         Time to plot (YYYYmmddHHMM), by default None
     time_index : int, optional
         Time index to plot, by default 0
+    plot_type : str, optional
+        Type of plot: "scalar_wind" (default) or "skewT"
     no_browser : bool, optional
         If True, do not open the browser, by default False
+    directory : str, optional
+        Directory where the HTML file will be saved (overrides config)
+    horizontal_wind: float, required for scalar_wind
+        Horizontal wind component in m s$^{-1}$
+    meridional_wind: float, required for scalar_wind
+        Meridional wind component in m s$^{-1}$
+    latitude: float, required for skewT
+        Latitude in degrees
+    longitude: float, required for skewT
+        Longitude in degrees
     """
-    if parameter is None or level is None:
-        parser = argparse.ArgumentParser()
-        parser.error(
-            "era5vis_modellevel: command not understood. "
-            "Parameter and level are required. "
-            "Type 'era5vis_modellevel --help' for usage information."
-        )
-    else:
-        html_path = era5vis.write_html(
-            parameter,
-            level=level,
-            time=time,
-            time_ind=time_index,
+    
+    plot_type = params.get("plot_type", "scalar_wind")
+
+    # define required parameters according to plot type
+    if plot_type == "scalar_wind":
+        required = ["parameter", "level", "u1", "u2"]
+        missing = [k for k in required if k not in params or params[k] is None]
+        if missing:
+            raise ValueError(f"For scalar_wind plots, missing: {', '.join(missing)}")
+
+        html_path = core.write_scalar_with_wind_html(
+            scalar=params["parameter"],
+            u=params["u1"],
+            v=params["u2"],
+            level=params["level"],
+            time=params.get("time"),
+            time_index=params.get("time_index", 0),
+            directory=params.get("directory"),
         )
 
-        if no_browser:
-            print("File successfully generated at:", html_path)
-        else:
-            webbrowser.get().open_new_tab(f"file://{html_path}")
+    elif plot_type == "skewT":
+        required = ["lat", "lon", "time"]
+        missing = [k for k in required if k not in params or params[k] is None]
+        if missing:
+            raise ValueError(f"For skewT plots, missing: {', '.join(missing)}")
+
+        html_path = core.write_skewT_html(
+            lat=params["lat"],
+            lon=params["lon"],
+            time=params["time"],
+            directory=params.get("directory"),
+        )
+
+    else:
+        raise ValueError(f"Unknown plot_type '{plot_type}' specified.")
+
+    if params.get("no_browser", False):
+        print("File successfully generated at:", html_path)
+    else:
+        webbrowser.get().open_new_tab(f"file://{html_path}")
