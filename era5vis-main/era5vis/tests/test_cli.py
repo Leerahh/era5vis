@@ -27,7 +27,7 @@ def test_help(capsys, args):
 
     assert exc.value.code == 0
     captured = capsys.readouterr()
-    assert "usage: era5vis_modellevel" in captured.out
+    assert "usage: era5vis_analysis_plots" in captured.out
 
 
 @pytest.mark.parametrize("args", [
