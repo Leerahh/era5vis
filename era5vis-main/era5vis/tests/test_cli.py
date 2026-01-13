@@ -10,7 +10,7 @@ import pytest
 import yaml
 import era5vis
 
-from era5vis.cli import modellevel
+from era5vis.cli import analysis_plots
 
 
 
@@ -23,7 +23,7 @@ def test_help(capsys, args):
     """Test that help flags print usage information and exit."""
     # CLI exit after printing help
     with pytest.raises(SystemExit) as exc:
-        modellevel(args)
+        analysis_plots(args)
 
     assert exc.value.code == 0
     captured = capsys.readouterr()
@@ -38,7 +38,7 @@ def test_version(capsys, args):
     """Test that version flags print version information and exit."""
     # CLI should exit after printing version info
     with pytest.raises(SystemExit) as exc:
-        modellevel(args)
+        analysis_plots(args)
 
     assert exc.value.code == 0
     captured = capsys.readouterr()
@@ -58,7 +58,7 @@ def test_print_html(capsys, extra_args, retrieve_param_level_time_wind_from_ds):
     args = ["-p", str(param), "-lvl", str(level), "-u1", "u", "-u2", "v"] + extra_args
 
     # run CLI
-    modellevel(args)
+    analysis_plots(args)
     # capture output
     captured = capsys.readouterr()
     # verify that file was reported as generated
@@ -94,7 +94,7 @@ def test_html_print_with_config(capsys, tmp_path, retrieve_param_level_time_wind
         yaml.safe_dump(config_data, f)
 
     # call CLI with only the config file path
-    modellevel([str(config_file)])
+    analysis_plots([str(config_file)])
     # capture CLI output
     captured = capsys.readouterr()
     # verify that file was reported as generated
@@ -106,7 +106,7 @@ def test_error(capsys, args, incomplete_test_cases):
     """Test that incomplete config/CLI calls raise a ValueError."""
     # expect ValueError due to missing required arguments
     with pytest.raises(ValueError) as exc:
-        modellevel(incomplete_test_cases[args])
+        analysis_plots(incomplete_test_cases[args])
 
     # instead of "missing", check for any ValueError related to the data
     err_msg = str(exc.value)
@@ -150,7 +150,7 @@ def test_cli_overrides_config(capsys, config_index, cli_option, temp_incomplete_
         ]
 
     # run CLI with overrides
-    modellevel(args)
+    analysis_plots(args)
     # capture output
     captured = capsys.readouterr()
     # verify that file was reported as generated
