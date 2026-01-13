@@ -21,8 +21,8 @@ import era5vis
 from . import core
 
 
-def modellevel(args):
-    """Main entry function for the era5vis_modellevel CLI tool."""
+def analysis_plots(args):
+    """Main entry function for the era5vis_analysis_plots CLI tool."""
     parsed_args = _parse_args(args)
 
     config = {}
@@ -34,14 +34,14 @@ def modellevel(args):
     _generate_plot(**params)
 
 
-def era5vis_modellevel():
-    """Entry point for the era5vis_modellevel application script."""
-    modellevel(sys.argv[1:])
+def era5vis_analysis_plots():
+    """Entry point for the era5vis_analysis_plots application script."""
+    analysis_plots(sys.argv[1:])
 
 
 def _parse_args(args):
     """
-    Parse command-line arguments for era5vis_modellevel.
+    Parse command-line arguments for era5vis_analysis_plots.
 
     Parameters
     ----------
@@ -54,8 +54,8 @@ def _parse_args(args):
         Parsed arguments.
     """
     parser = argparse.ArgumentParser(
-        prog="era5vis_modellevel",
-        description="Visualization of ERA5 at a given model level."
+        prog="era5vis_analysis_plots",
+        description="Visualization of ERA5 analysis plots."
     )
 
     parser.add_argument(
@@ -67,9 +67,9 @@ def _parse_args(args):
         "-v", "--version",
         action="version",
         version=(
-            f"era5vis_modellevel: {era5vis.__version__}\n"
+            f"era5vis_analysis_plots: {era5vis.__version__}\n"
             "Licence: public domain\n"
-            "era5vis_modellevel is provided 'as is' without warranty of any kind"
+            "era5vis_analysis_plots is provided 'as is' without warranty of any kind"
         )
     )
     parser.add_argument(
