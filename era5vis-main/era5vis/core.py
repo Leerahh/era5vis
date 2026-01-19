@@ -1,7 +1,8 @@
 """
 Plenty of useful functions doing useful things.
 Updated by Lina Brückner, January 2026:
-     - adding write_scalar_with_wind_html and write skewT_html
+     - Adding write_scalar_with_wind_html and write skewT_html
+     - Deleting usage of example data files
 """
 
 from pathlib import Path
@@ -52,17 +53,15 @@ def write_scalar_with_wind_html(
 
     # default data file from configuration
     if datafile is None:
-        datafile = cfg.scalar_wind_datafile
-        
+        raise ValueError(
+        "datafile must be provided explicitly; example files are no longer used"
+        )
+
+
     # check that dataset actually contains the selected parameters
     era5.check_file_availability(datafile)
     for var in (scalar, u, v):
         era5.check_data_availability(var, level=level, time=time, datafile=datafile)
-    download_era5.download_era5_data()
-        
-    # check that dataset actually contains the selected variable, time, ...
-    era5.check_file_availability()
-    era5.check_data_availability(var, level=level, time=time, time_ind=time_index)
 
     # create a temporary directory for the plot
     if directory is None:
@@ -113,7 +112,9 @@ def write_skewT_html(
 
     # fallback for time selection
     if datafile is None:
-        datafile = cfg.skewT_datafile
+        raise ValueError(
+        "datafile must be provided explicitly; example files are no longer used"
+        )
 
     # default data file from configuration
     if directory is None:
@@ -127,14 +128,21 @@ def write_skewT_html(
     png = Path(directory) / f'SkewT_{lat:.2f}_{lon:.2f}_{time_safe}.png'
 
     # generate plot
-    graphics.plot_skewT(
+    p, T, Td, u, v = graphics.extract_skewT_profile(
         lat=lat,
         lon=lon,
         time=time,
         datafile=datafile,
-        savepath=png,
-        **kwargs
     )
+
+    graphics.plot_skewT(
+        p, T, Td, u, v,
+        lat=lat,
+        lon=lon,
+        time=time,
+        savepath=png,
+    )
+
 
     # generate HTML output from template
     outpath = Path(directory) / 'index.html'
