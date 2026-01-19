@@ -24,8 +24,7 @@ import json
 from pathlib import Path
 from era5vis.data_access.download_era5 import download_era5_data
 from era5vis.data_access.era5_request import Era5Request
-from era5vis import modellevel
-
+from era5vis import analysis_plots
 
 
 
@@ -39,11 +38,7 @@ def analysis_plots(args):
 
     params = _merge_config_and_args(parsed_args, config)
 
-    try:
-        era5vis.modellevel.run_modellevel(**params)
-    except ValueError as e:
-        print(f"Error: {e}")
-        sys.exit(1)
+    return era5vis.analysis_plots.run_analysis_plots(**params)
 
 
 def era5vis_analysis_plots():
@@ -76,7 +71,7 @@ def _parse_args(args):
         help="Path to configuration file."
     )
     parser.add_argument(
-        "-v", "--version",
+        "--v", "--version",
         action="version",
         version=(
             f"era5vis_analysis_plots: {era5vis.__version__}\n"
@@ -85,23 +80,27 @@ def _parse_args(args):
         )
     )
     parser.add_argument(
-        "-p", "--parameter",
+        "--p", "--parameter",
+        dest="parameter",
         metavar="PARAM",
         help="ERA5 variable to plot (mandatory)"
     )
     parser.add_argument(
-        "-lvl", "--level",
+        "--lvl", "--level",
+        dest="level",
         metavar="LEVEL",
         type=int,
         help="Pressure level to plot (hPa) (mandatory)"
     )
     parser.add_argument(
-        "-t", "--time",
+        "--t", "--time",
+        dest="time",
         metavar="TIME",
         help="Time to plot (YYYYmmddHHMM)"
     )
     parser.add_argument(
-        "-ti", "--time_index",
+        "--ti", "--time_index",
+        dest="time_index",
         metavar="TIME_IND",
         type=int,
         default=0,
@@ -111,7 +110,8 @@ def _parse_args(args):
         )
     )
     parser.add_argument(
-        "-pl", "--plot_type",
+        "--pl", "--plot_type",
+        dest="plot_type",
         choices=["scalar_wind", "skewT"],
         type=str,
         default="scalar_wind",
@@ -133,30 +133,35 @@ def _parse_args(args):
         )
     )
     parser.add_argument(
-        "-u1", "--horizontal_wind",
+        "--u1", "--horizontal_wind",
         dest="u",
         help=("Horizontal wind component in m s$^{-1}$"
         )
     )
     parser.add_argument(
-        "-u2", "--meridional_wind",
+        "--u2", "--meridional_wind",
         dest="v",
         help=("Meridional wind component in m s$^{-1}$"
         )
     )
     parser.add_argument(
-        "-lat", "--latitude",
+        "--lat", "--latitude",
+        dest="lat",
+        type=float,
         help=("Latitude in degrees"
         )
     )
     parser.add_argument(
-        "-lon", "--longitude",
+        "--lon", "--longitude",
+        dest="lon",
+        type=float,
         help=("Longitude in degrees"
         )
     )
 
     parser.add_argument(
-        "--download-data",
+        "--dd", "--download_data",
+        dest="download_data",
         action="store_true",
         help=(
             "Download the needed ERA5 data for the specified parameter and level"
@@ -230,8 +235,12 @@ def _merge_config_and_args(args, config):
         "time_index": args.time_index or plot_config.get("time_index", 0),
         "directory": args.directory or common_config.get("directory", "."),
         "no_browser": args.no_browser or common_config.get("no_browser", False),
-        "download_data": args.download_data or plot_config.get("download_data", False),
-  }
+        "download_data": (
+            args.download_data
+            if args.download_data
+            else common_config.get("download_data", True)
+        ),
+    }
 
     return params
 
