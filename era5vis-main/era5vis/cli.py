@@ -10,21 +10,16 @@ Edited by Leah Herrfurth, December 2025:
 Edited by Lina Brückner, January 2026:
     - Adding parser arguments plot type and directory, u1, u2, lon and lat
     - Implementing new parser arguments in _merge_config_and_args()
-    - Updating _generate_plot() for the two different plot types
 """
 
-import sys
-import webbrowser
-import argparse
-import yaml
 import era5vis
 from . import core
-import hashlib
-import json
-from pathlib import Path
-from era5vis.data_access.download_era5 import download_era5_data
-from era5vis.data_access.era5_request import Era5Request
 from era5vis import analysis_plots
+from pathlib import Path
+import sys
+import argparse
+import yaml
+import webbrowser
 
 
 
@@ -244,146 +239,20 @@ def _merge_config_and_args(args, config):
 
     return params
 
-def _download_era5_data(parameter, level, time=None, time_index=0):
-    """
-    Download ERA5 data for the specified parameter and level.
 
-    Parameters
-    ----------
-    parameter : str
-        ERA5 variable to download.
-    level : int
-        Pressure level in hPa.
-    time : str, optional
-        Time to download (YYYYmmddHHMM), by default None
-    """
+#    req_dict = request.to_dict()  # if not available, build dict manually
+#    hash = _request_hash(req_dict)
 
-    request = Era5Request(
-        product_type=["reanalysis"],
-        variable=[parameter],
-        year=[time[0:4]] if time else ["2025"],
-        month=[time[4:6]] if time else ["03"],
-        day=[time[6:8]] if time else ["02", "03", "04"],
-        time=[f"{time[8:10]}:00"] if time else [
-            "00:00", "01:00", "02:00",
-            "03:00", "04:00", "05:00",
-            "06:00", "07:00", "08:00",
-            "09:00", "10:00", "11:00",
-            "12:00", "13:00", "14:00",
-            "15:00", "16:00", "17:00",
-            "18:00", "19:00", "20:00",
-            "21:00", "22:00", "23:00"
-        ],
-        pressure_level=[str(level)],
-        data_format="netcdf",
-        download_format="unarchived",
-        area=[70, -20, -30, 50]
-    )
+#    target = Path.cwd() / f"era5_{hash}.nc"
 
+#    if target.exists():
+#        print(f"Using cached ERA5 data: {target}")
+#        return target
 
-    req_dict = request.to_dict()  # if not available, build dict manually
-    hash = _request_hash(req_dict)
-
-    target = Path.cwd() / f"era5_{hash}.nc"
-
-    if target.exists():
-        print(f"Using cached ERA5 data: {target}")
-        return target
-
-    print("Downloading ERA5 data...")
-    download_era5_data(request.to_dict(), target=target)
-    if not target.exists():
-        raise RuntimeError(
-            f"ERA5 download reported success but file was not found: {target}"
-        )
-    return target
-
-
-def _generate_plot(params, level, time=None, time_index=0, no_browser=False, download_data=False):
-    """
-    Generate an ERA5 visualization and optionally open it in a browser.
-
-    Parameters
-    ----------
-    parameter : str
-        ERA5 variable to plot.
-    level : int
-        Pressure level in hPa.
-    time : str, optional
-        Time to plot (YYYYmmddHHMM), by default None
-    time_index : int, optional
-        Time index to plot, by default 0
-    plot_type : str, optional
-        Type of plot: "scalar_wind" (default) or "skewT"
-    no_browser : bool, optional
-        If True, do not open the browser, by default False
-    directory : str, optional
-        Directory where the HTML file will be saved (overrides config)
-    horizontal_wind: float, required for scalar_wind
-        Horizontal wind component in m s$^{-1}$
-    meridional_wind: float, required for scalar_wind
-        Meridional wind component in m s$^{-1}$
-    latitude: float, required for skewT
-        Latitude in degrees
-    longitude: float, required for skewT
-        Longitude in degrees
-    """
-    
-    datafile = None
-    if download_data:
-        datafile = _download_era5_data(
-            parameter=params,
-            level=level,
-            time=time,
-            time_index=time_index
-        )
-    else: 
-        datafile = era5vis.cfg.example_datafile
-    era5vis.cfg.set_datafile(datafile)
-
-
-    plot_type = params.get("plot_type", "scalar_wind")
-
-    # define required parameters according to plot type
-    if plot_type == "scalar_wind":
-        required = ["parameter", "level", "u1", "u2"]
-        missing = [k for k in required if k not in params or params[k] is None]
-        if missing:
-            raise ValueError(f"For scalar_wind plots, missing: {', '.join(missing)}")
-
-        html_path = core.write_scalar_with_wind_html(
-            scalar=params["parameter"],
-            u=params["u1"],
-            v=params["u2"],
-            level=params["level"],
-            time=params.get("time"),
-            time_index=params.get("time_index", 0),
-            directory=params.get("directory"),
-        )
-
-    elif plot_type == "skewT":
-        required = ["lat", "lon", "time"]
-        missing = [k for k in required if k not in params or params[k] is None]
-        if missing:
-            raise ValueError(f"For skewT plots, missing: {', '.join(missing)}")
-
-        html_path = core.write_skewT_html(
-            lat=params["lat"],
-            lon=params["lon"],
-            time=params["time"],
-            directory=params.get("directory"),
-        )
-
-    else:
-        raise ValueError(f"Unknown plot_type '{plot_type}' specified.")
-
-    if params.get("no_browser", False):
-        print("File successfully generated at:", html_path)
-    else:
-        webbrowser.get().open_new_tab(f"file://{html_path}")
-
-
-
-def _request_hash(request: dict) -> str:
-    payload = json.dumps(request, sort_keys=True).encode()
-    return hashlib.sha256(payload).hexdigest()[:12]
+#    print("Downloading ERA5 data...")
+#    download_era5_data(request.to_dict(), target=target)
+#    if not target.exists():
+#        raise RuntimeError(
+#            f"ERA5 download reported success but file was not found: {target}"
+#        )
+#    return target
