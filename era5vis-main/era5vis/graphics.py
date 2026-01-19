@@ -96,100 +96,110 @@ def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
 
     return fig
 
+def extract_skewT_profile(lat, lon, time, datafile, variables=None):
+    """
+    “Extract a vertical thermodynamic and wind profile from ERA5 data.”
 
-def plot_skewT(lat, lon, time, datafile, variables=None, savepath=None, curve=None):
-    '''
-    Plot a full Skew-T diagram for a given location and time from ERA5 data,
-    including temperature, dewpoint, wind barbs and reference lines.
+    Returns
+    -------
+    p : pint.Quantity
+        Pressure profile [hPa]
+    T : pint.Quantity
+        Temperature profile [°C]
+    Td : pint.Quantity
+        Dewpoint profile [°C]
+    u : pint.Quantity
+        Zonal wind [m/s]
+    v : pint.Quantity
+        Meridional wind [m/s]
+    """
 
-    Parameters
-    ----------
-    lat, lon : float
-        Latitude and longitude of the sounding
-    time : str
-        Time string, e.g., '2026-01-06T00:00'
-    datafile : str
-        Path to ERA5 NetCDF file
-    variables : dict, optional
-        Mapping of variables in the dataset, e.g.,
-        {'T': 't2m', 'Td': 'd2m', 'u': 'u10', 'v': 'v10', 'p': 'msl'}
-    savepath : str, optional
-        Path to save figure
-    '''
-
-    # default variable names
     if variables is None:
         variables = {
-            'T': 't',    # temperature
-            'q': 'q',    # specific humidity
-            'u': 'u',    # zonal wind
-            'v': 'v',    # meridional wind
-            'p': 'pressure_level'    # vertical pressure coordinate
-            }
+            'T': 't',
+            'q': 'q',
+            'u': 'u',
+            'v': 'v',
+        }
 
     with xr.open_dataset(datafile) as ds:
-        # select nearest lat/lon
-        T = ds[variables['T']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
-        q = ds[variables['q']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
-        u = ds[variables['u']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
-        v = ds[variables['v']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
-        p = ds[variables['p']]
+        T_da = ds[variables['T']] \
+            .sel(latitude=lat, longitude=lon, method='nearest') \
+            .sel(valid_time=time, method='nearest')
 
-        # convert variable units
-        T = T.values * units.kelvin
-        u = u.values * units('m/s')
-        v = v.values * units('m/s')
-        p = p.values * units.hPa
+        q_da = ds[variables['q']] \
+            .sel(latitude=lat, longitude=lon, method='nearest') \
+            .sel(valid_time=time, method='nearest')
 
-        # calculate dewpoint if not available in dataset
-        if 'Td' in variables:
-            Td = ds[variables['Td']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
-            Td = Td.values * units.kelvin
-        else:
-            # compute from specific humidity
-            q = ds[variables['q']].sel(latitude=lat, longitude=lon, method='nearest').sel(valid_time=time, method='nearest')
-            Td = mpcalc.dewpoint_from_specific_humidity(p, q)
+        u_da = ds[variables['u']] \
+            .sel(latitude=lat, longitude=lon, method='nearest') \
+            .sel(valid_time=time, method='nearest')
 
-    # create figure
+        v_da = ds[variables['v']] \
+            .sel(latitude=lat, longitude=lon, method='nearest') \
+            .sel(valid_time=time, method='nearest')
+
+        # Pressure from the same DataArray
+        p = T_da.pressure_level.values * units.hPa
+
+        # Convert units
+        T = (T_da.values * units.kelvin).to(units.degC)
+        Td = mpcalc.dewpoint_from_specific_humidity(p, q_da.values).to(units.degC)
+        u = u_da.values * units('m/s')
+        v = v_da.values * units('m/s')
+
+        # ERA5 is top-down → reverse for Skew-T
+        p = p[::-1]
+        T = T[::-1]
+        Td = Td[::-1]
+        u = u[::-1]
+        v = v[::-1]
+
+    return p, T, Td, u, v
+
+def plot_skewT(p, T, Td, u, v, lat, lon, time, datafile=None, variables=None, savepath=None):
+    """
+    “Plot a Skew-T diagram from prepared profile data.”
+    """
+
     fig = plt.figure(figsize=(9, 9))
     skew = SkewT(fig, rotation=45, rect=(0.1, 0.1, 0.55, 0.85))
 
-    # plot temperature and dewpoint
+    # Temperature & dewpoint
     skew.plot(p, T, 'r', label='Temperature')
     skew.plot(p, Td, 'g', label='Dewpoint')
 
-    # plot wind barbs
+    # Wind barbs
     skew.plot_barbs(p, u, v)
 
-    # set plot limits
+    # Axes limits
     skew.ax.set_xlim(-30, 40)
     skew.ax.set_ylim(1000, 100)
     skew.ax.set_xlabel('Temperature [°C]')
     skew.ax.set_ylabel('Pressure [hPa]')
 
-    # add reference lines
+    # Reference lines
     skew.plot_dry_adiabats()
     skew.plot_moist_adiabats()
     skew.plot_mixing_lines()
 
-    # create a Hodograph inset
+    # Hodograph
     ax_hod = plt.axes((0.75, 0.75, 0.2, 0.2))
     h = Hodograph(ax_hod, component_range=50.)
     h.add_grid(increment=10)
     h.plot(u, v)
+
     ax_hod.set_xlabel('Wind speed [m s$^{-1}$]')
     ax_hod.set_ylabel('Wind speed [m s$^{-1}$]')
 
-    # add figure title
-    skew.ax.set_title(f"Skew-T at '{lat:.2f}'N, '{lon:.2f}'E ('{time}')", fontsize=12)
+    # Title
+    skew.ax.set_title(
+        f"Skew-T at {lat:.2f}°N, {lon:.2f}°E ({time})",
+        fontsize=12
+    )
 
-    # save figure
-    if savepath is None:
-        time_safe = str(time).replace(":", "-").replace(" ", "_")
-        filename = f"SkewT_{lat:.2f}_{lon:.2f}_{time_safe}.png"
-        fig.savefig(filename, bbox_inches='tight')
-        plt.close(fig)
-    else:
+    # Save or return
+    if savepath is not None:
         fig.savefig(savepath, bbox_inches='tight')
         plt.close(fig)
 
