@@ -1,26 +1,51 @@
+"""
+Updated by Lina Brückner, January 2026:
+    - Implementing all pressure levels
+"""
 from pathlib import Path
+import pandas as pd
 from era5vis.data_access.download_era5 import download_era5_data
 from era5vis.data_access.era5_request import Era5Request
 from era5vis.utils.hashing import request_hash
+
+ALL_PRESSURE_LEVELS = [
+    "1000", "975", "950", "925", "900", "875", "850",
+    "825", "800", "775", "750", "700", "650", "600",
+    "550", "500", "450", "400", "350", "300",
+    "250", "225", "200", "175", "150", "125", "100"
+]
 
 class Era5Cache:
     def __init__(self, cache_dir: Path | None = None):
         self.cache_dir = cache_dir or Path.cwd()
 
-    def get_modellevel_data(self, parameter, level, time=None):
+    def get_analysis_plots_data(self, variables, level, time=None):
+        if time is None:
+            raise ValueError("time not available")
+
+        t = pd.to_datetime(time)
+        
+        if level is None:
+            # skewT → full vertical column
+            pressure_levels = ALL_PRESSURE_LEVELS
+        else:
+        # scalar_wind → single level or list of levels
+            if isinstance(level, (list, tuple)):
+                pressure_levels = [str(lvl) for lvl in level]
+            else:
+                pressure_levels = [str(level)]
+
         request = Era5Request(
             product_type=["reanalysis"],
-            variable=[parameter],
-            year=[time[0:4]] if time else ["2025"],
-            month=[time[4:6]] if time else ["03"],
-            day=[time[6:8]] if time else ["02", "03", "04"],
-            time=[f"{time[8:10]}:00"] if time else [
-                f"{h:02d}:00" for h in range(24)
-            ],
-            pressure_level=[str(level)],
+            variable=variables,
+            year=[f"{t.year:04d}"],
+            month=[f"{t.month:02d}"],
+            day=[f"{t.day:02d}"],
+            time=[f"{t.hour:02d}:00"],
+            pressure_level=pressure_levels,
             data_format="netcdf",
             download_format="unarchived",
-            area=[70, -20, -30, 50],
+            area=[70, -20, 30, 50],
         )
 
         req_dict = request.to_dict()
