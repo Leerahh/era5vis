@@ -25,4 +25,5 @@ def test_horiz_cross_section(retrieve_param_level_time_from_ds, datafile):
 
     # test using explicit time string
     da_time = era5.horiz_cross_section(param=param, lvl=level, time=time_str, datafile=datafile)
+    assert np.datetime64(da_time.valid_time.item(), 'ns') == expected_timem=param, lvl=level, time=time_str, datafile=datafile)
     assert np.datetime64(da_time.valid_time.item(), 'ns') == expected_time
