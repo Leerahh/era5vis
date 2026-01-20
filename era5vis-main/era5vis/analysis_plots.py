@@ -92,13 +92,11 @@ def run_analysis_plots(
     ValueError
         If required parameters for the selected plot type are missing.
     ValueError
-        If ``download_data`` is False.
-    ValueError
         If an unknown ``plot_type`` is specified.
     """
+    
 
-
-    # validate required parameters depending on plot type
+    # validate required parameters
     if plot_type == "scalar_wind":
         if parameter is None or level is None:
             raise ValueError("For scalar_wind, 'parameter' and 'level' are required.")
@@ -108,60 +106,49 @@ def run_analysis_plots(
     else:
         raise ValueError(f"Unknown plot_type '{plot_type}'.")
 
-    # data download or use example dataset
-    if download_data:
-        use_example_data = False
-    else:
-        use_example_data = True
+    # decide data source
+    use_example_data = not download_data
 
-    # select data source
-
+    # select datafile
     if use_example_data:
-        # use packaged example ERA5 data
+        # Use packaged example datasets
         if plot_type == "scalar_wind":
             datafile = cfg.scalar_wind_datafile
-        elif plot_type == "skewT":
+        else:  # skewT
             datafile = cfg.skewT_datafile
-        else:
-            raise ValueError(f"Unknown plot_type '{plot_type}'.")
-
-        cfg.set_datafile(datafile)
 
     else:
-        # use ERA5 cache and download real data
+        # download / cache real ERA5 data
         cache = Era5Cache()
-        datafile = cache.get_analysis_plots_data(parameter, level, time=time)
-        cfg.set_datafile(datafile)
 
-    # create cache instance (handles downloading reuse)
-    #cache = Era5Cache()
-
-    # initial data retrieval to establish a valid datafile
-    #datafile = cache.get_analysis_plots_data(parameter, level, time=time)
-
-    # register the datafile globally for downstream modules
-    #cfg.set_datafile(datafile)
-
-    # scalar field with wind vectors
-    if plot_type == "scalar_wind":
-        if not use_example_data:
+        if plot_type == "scalar_wind":
             variables = [parameter, u1, u2]
+
             datafile = cache.get_analysis_plots_data(
                 variables=variables,
                 level=level,
                 time=time,
             )
 
-        # variables required for this plot type
-        #variables = [parameter, u1, u2]
-        # retrieve (or reuse) data containing all required variables
-        #datafile = cache.get_analysis_plots_data(
-        #    variables=variables,
-        #    level=level,
-        #    time=time,
-        #)
+        else:  # skewT
+            variables = ["t", "q", "u", "v"]
+            levels = [
+                1000, 975, 950, 925, 900, 875, 850, 825, 800,
+                775, 750, 700, 650, 600, 550, 500, 450, 400,
+                350, 300, 250, 200, 150, 100
+            ]
 
-        # generate plot and HTML output
+            datafile = cache.get_analysis_plots_data(
+                variables=variables,
+                level=levels,
+                time=time,
+            )
+
+    # make datafile globally available
+    cfg.set_datafile(datafile)
+
+    # Generate plot and HTML
+    if plot_type == "scalar_wind":
         html_path = core.write_scalar_with_wind_html(
             scalar=parameter,
             u=u1,
@@ -173,30 +160,7 @@ def run_analysis_plots(
             datafile=datafile,
         )
 
-    # skew-T diagram
-    elif plot_type == "skewT":
-        if not use_example_data:
-            # variables required for thermodynamic soundings
-            variables = ["t", "q", "u", "v"]
-            # standard ERA5 pressure levels used for soundings
-            levels = [
-                1000, 975, 950, 925, 900, 875, 850, 825, 800,
-                775, 750, 700, 650, 600, 550, 500, 450, 400,
-                350, 300, 250, 200, 150, 100
-            ]
-            datafile = cache.get_analysis_plots_data(
-                variables=variables,
-                level=levels,
-                time=time,
-            )
-        
-        # retrieve ERA5 data for all pressure levels
-        #datafile = cache.get_analysis_plots_data(
-         #   variables=variables,
-          #  level=levels,
-           # time=time,
-        #)
-        # generate skew-T plozt and HTML output
+    else:  # skewT
         html_path = core.write_skewT_html(
             lat=lat,
             lon=lon,
@@ -205,9 +169,10 @@ def run_analysis_plots(
             directory=directory,
         )
 
-    # automatically open the result in a web browser unless disabled
+    # open browser or print path
     if not no_browser:
         webbrowser.get().open_new_tab(f"file://{html_path}")
     else:
         print("File successfully generated at:", html_path)
+
     return html_path
