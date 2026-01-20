@@ -1,7 +1,18 @@
-'''
+"""
+Interface for generating ERA5 analysis plots.
+
+This module provides the main public API function used by both the
+command-line interface and programmatic usage. It orchestrates:
+
+- validation of user input
+- retrieval and caching of ERA5 data
+- delegation to plotting and HTML generation routines
+- optional automatic display of results in a web browser
+
 Updated by Lina Brückner, January 2026:
-    - Adding plot_type
-'''
+    - Added support for multiple plot types (scalar_wind, skewT)
+"""
+
 import webbrowser
 from era5vis.data_access.era5_cache import Era5Cache
 from era5vis import core, cfg
@@ -21,42 +32,73 @@ def run_analysis_plots(
     no_browser=False,
 ):
     """
-    Generate an ERA5 model-level visualization (scalar_wind or skewT).
+    Generate an ERA5 analysis visualization and corresponding HTML output.
+
+    This function serves as the main high-level entry point for ERA5vis.
+    Depending on the selected ``plot_type``, it generates either:
+
+    - a horizontal scalar field plot with wind vectors
+    - a Skew-T diagram for a specified location
+
+    Internally, the function handles ERA5 data retrieval via a cache,
+    delegates plotting to the ``core`` and ``graphics`` modules, and
+    optionally opens the result in a web browser.
 
     Parameters
     ----------
-    parameter : str
-        ERA5 variable to plot (required for scalar_wind)
-    level : int
-        Pressure level in hPa (required for scalar_wind)
+    parameter : str, optional
+        ERA5 scalar variable to plot (e.g. ``"z"``, ``"t"``).
+        Required for ``plot_type="scalar_wind"``.
+    level : int, optional
+        Pressure level in hPa.
+        Required for ``plot_type="scalar_wind"``.
     time : str, optional
-        Time to plot (YYYYmmddHHMM)
-    time_index : int, optional
-        Time index within dataset (used if `time` is None)
-    plot_type : str, default "scalar_wind"
-        Either "scalar_wind" or "skewT"
+        Datetime string compatible with ERA5 ``valid_time``
+        (format: ``YYYYmmddHHMM``).
+        Required for ``plot_type="skewT"``.
+    time_index : int, default 0
+        Time index within the dataset, used if ``time`` is None.
+    plot_type : {"scalar_wind", "skewT"}, default "scalar_wind"
+        Type of visualization to generate.
     download_data : bool, default False
-        If True, download ERA5 data
+        If True, download ERA5 data if not already cached.
+        Must be True for this function to run.
     u1 : str, default "u"
-        Horizontal wind component (scalar_wind only)
+        ERA5 zonal (east–west) wind component variable name
+        (scalar_wind only).
     u2 : str, default "v"
-        Meridional wind component (scalar_wind only)
-    lat : float, required for skewT
-        Latitude (degrees)
-    lon : float, required for skewT
-        Longitude (degrees)
-    directory : str or Path, optional
-        Output directory for HTML/PNG
+        ERA5 meridional (north–south) wind component variable name
+        (scalar_wind only).
+    lat : float, optional
+        Latitude in degrees.
+        Required for ``plot_type="skewT"``.
+    lon : float, optional
+        Longitude in degrees.
+        Required for ``plot_type="skewT"``.
+    directory : str or pathlib.Path, optional
+        Output directory for generated PNG and HTML files.
+        If None, a temporary directory is used.
     no_browser : bool, default False
-        If True, do not open a browser
+        If True, do not automatically open the generated HTML file
+        in a web browser.
 
     Returns
     -------
-    Path
-        Path to generated HTML file
+    pathlib.Path
+        Path to the generated HTML file.
+
+    Raises
+    ------
+    ValueError
+        If required parameters for the selected plot type are missing.
+    ValueError
+        If ``download_data`` is False.
+    ValueError
+        If an unknown ``plot_type`` is specified.
     """
 
-    # validate required parameters
+
+    # validate required parameters depending on plot type
     if plot_type == "scalar_wind":
         if parameter is None or level is None:
             raise ValueError("For scalar_wind, 'parameter' and 'level' are required.")
@@ -66,26 +108,33 @@ def run_analysis_plots(
     else:
         raise ValueError(f"Unknown plot_type '{plot_type}'.")
 
+    # data download must be explicitly enabled
     if not download_data:
         raise ValueError(
             "This command requires --download-data or download_data: true in the config."
         )
 
-    # create cache once
+    # create cache instance (handles downloading reuse)
     cache = Era5Cache()
-    
+
+    # initial data retrieval to establish a valid datafile
     datafile = cache.get_analysis_plots_data(parameter, level, time=time)
 
+    # register the datafile globally for downstream modules
     cfg.set_datafile(datafile)
 
+    # scalar field with wind vectors
     if plot_type == "scalar_wind":
+        # variables required for this plot type
         variables = [parameter, u1, u2]
+        # retrieve (or reuse) data containing all required variables
         datafile = cache.get_analysis_plots_data(
             variables=variables,
             level=level,
             time=time,
         )
 
+        # generate plot and HTML output
         html_path = core.write_scalar_with_wind_html(
             scalar=parameter,
             u=u1,
@@ -97,23 +146,23 @@ def run_analysis_plots(
             datafile=datafile,
         )
 
+    # skew-T diagram
     elif plot_type == "skewT":
+        # variables required for thermodynamic soundings
         variables = ["t", "q", "u", "v"]
-
-        # ERA5 pressure levels for soundings
+        # standard ERA5 pressure levels used for soundings
         levels = [
             1000, 975, 950, 925, 900, 875, 850, 825, 800,
             775, 750, 700, 650, 600, 550, 500, 450, 400,
             350, 300, 250, 200, 150, 100
         ]
-
+        # retrieve ERA5 data for all pressure levels
         datafile = cache.get_analysis_plots_data(
             variables=variables,
             level=levels,
             time=time,
         )
-
-
+        # generate skew-T plozt and HTML output
         html_path = core.write_skewT_html(
             lat=lat,
             lon=lon,
@@ -122,10 +171,9 @@ def run_analysis_plots(
             directory=directory,
         )
 
-    # open browser if requested
+    # automatically open the result in a web browser unless disabled
     if not no_browser:
         webbrowser.get().open_new_tab(f"file://{html_path}")
     else:
         print("File successfully generated at:", html_path)
-
     return html_path
