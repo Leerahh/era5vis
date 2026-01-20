@@ -11,7 +11,7 @@ skewT:
   lon: 16.37
 
 common:
-  time: "2025-12-01T00:00"
+  time: "2025-10-01T00:00"
   directory: "./"
   no_browser: true
   download_data: false
