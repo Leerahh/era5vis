@@ -45,16 +45,16 @@ def mkdir(path, reset=False):
         Path to the created (or existing) directory.
 """
 
-     # if requested, remove the directory and all its components
-     if reset and Path.is_dir(path):
+    # if requested, remove the directory and all its components
+    if reset and Path.is_dir(path):
           shutil.rmtree(path)
-     # attempt to create the directory
-     try:
-          Path.mkdir(path, parents=True)
-     except FileExistsError:
-          # directory already exists and reset=False
-          pass
-     return path
+    # attempt to create the directory
+    try:
+        Path.mkdir(path, parents=True)
+    except FileExistsError:
+        # directory already exists and reset=False
+        pass
+    return path
 
 
 def write_scalar_with_wind_html(
