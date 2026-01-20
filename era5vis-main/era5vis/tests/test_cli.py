@@ -81,7 +81,7 @@ def test_html_print_with_config(capsys, tmp_path, retrieve_param_level_time_wind
             "u": "u",
             "v": "v",
             "level": 500,
-            "time": "2025-12-01T00:00",
+            "time": "2025-10-01T00:00",
         },
         "common": {
             "no_browser": True,
