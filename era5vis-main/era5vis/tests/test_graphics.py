@@ -101,6 +101,7 @@ def test_extract_and_plot_skewT(tmp_path):
     assert fpath.exists()
     assert fpath.suffix == ".png"
 
-    plt.close(fig)path.suffix == '.png'
+    plt.close(fig)
+    assert fpath.suffix == '.png'
 
     plt.close(fig)
