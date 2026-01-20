@@ -302,7 +302,7 @@ def _merge_config_and_args(args, config):
         "download_data": (
             args.download_data
             if args.download_data
-            else common_config.get("download_data", True)
+            else common_config.get("download_data", False)
         ),
     }
 
