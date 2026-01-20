@@ -9,6 +9,7 @@ command-line interface and programmatic usage. It orchestrates:
 - delegation to plotting and HTML generation routines
 - optional automatic display of results in a web browser
 
+Author: Leah Herrfurth
 Updated by Lina Brückner, January 2026:
     - Added support for multiple plot types (scalar_wind, skewT)
 """

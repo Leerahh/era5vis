@@ -8,6 +8,8 @@ reused across multiple plotting operations.
 The cache is based on hashing the full ERA5 request dictionary and
 storing the resulting NetCDF file in a local cache directory.
 
+Author: Leah Herrfurth
+
 Updated by Lina Brückner, January 2026:
     - Implemented support for retrieving all pressure levels
 """

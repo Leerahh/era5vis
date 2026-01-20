@@ -8,6 +8,8 @@ a dictionary compatible with the API.
 
 The request object is primarily used by the ERA5 caching layer to ensure
 that requests are hashable, reproducible, and easily serializable.
+
+Author: Leah Herrfurth
 """
 
 from dataclasses import dataclass

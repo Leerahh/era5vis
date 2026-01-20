@@ -7,7 +7,10 @@ datasets. It provides functionality to:
 - verify that an ERA5 data file exists and can be opened
 - validate the availability of variables, pressure levels, and times
 - extract horizontal cross sections at a given pressure level and time
-
+ Edits:
+    Leah Herrfurth, December 2025
+    - added check_file_availability
+    
 """
 
 import xarray as xr

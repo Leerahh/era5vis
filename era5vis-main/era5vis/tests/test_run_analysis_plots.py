@@ -1,4 +1,7 @@
 '''
+Tests for the run_analysis_plots function in era5vis.analysis_plots.
+
+Author: Leah Herrfurth
 Updated by Lina Brückner, January 2026:
     - Adding era5vis.core.write_scalar_with_wind_html and era5vis.core.write_skewT instead of era5vis.core.write_html
 '''
@@ -9,11 +12,19 @@ from era5vis import cfg
 
 @pytest.fixture
 def tmp_nc_file(tmp_path):
+    """
+    Provide a temporary NetCDF file to simulate ERA5 data input.
+    """
     f = tmp_path / "test.nc"
     f.touch()
     return f
 
 def test_run_modellevel_sets_cfg_datafile(tmp_nc_file):
+    """
+    Test that run_analysis_plots correctly sets cfg.datafile and returns HTML output.
+    """
+
+     # Simulate the HTML output file that would normally be generated
     fake_html = tmp_nc_file.parent / "index.html"
     fake_html.touch()  # create an empty file
 
@@ -31,7 +42,10 @@ def test_run_modellevel_sets_cfg_datafile(tmp_nc_file):
             no_browser=True
         )
 
+        # Verify that cfg.datafile points to our temporary NetCDF file
         assert cfg.datafile == tmp_nc_file
+
+         # Verify that the returned HTML file exists
         assert html_path.exists()
 
 def test_run_analysis_plots_raises_on_missing_parameter():

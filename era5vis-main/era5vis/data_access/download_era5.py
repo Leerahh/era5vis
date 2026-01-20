@@ -15,6 +15,8 @@ Notes
 -----
 Access to ERA5 data requires registration at:
 https://cds.climate.copernicus.eu/
+
+Author: Leah Herrfurth
 """
 import cdsapi
 
@@ -52,47 +54,4 @@ def download_era5_data(request, target='era5_download.nc'):
     # submit the request and download the data to the target file
     client.retrieve(dataset, request, target)
 
-# ---------------------------------------------------------------------
-# Example ERA5 request (for reference and testing only)
-# ---------------------------------------------------------------------
-#
-# The following example demonstrates how a valid CDS request dictionary
-# might look.
-#
-# To use it, copy the request dictionary and pass it to download_era5_data().
-#
-'''
-client = cdsapi.Client()
-
-dataset = "reanalysis-era5-pressure-levels"
-request = {
-    "product_type": ["reanalysis"],
-    "variable": [
-        "specific_humidity",
-        "temperature",
-        "u_component_of_wind",
-        "v_component_of_wind"
-    ],
-    "year": ["2025"],
-    "month": ["03"],
-    "day": ["02", "03", "04"],
-    "time": [
-        "00:00", "01:00", "02:00",
-        "03:00", "04:00", "05:00",
-        "06:00", "07:00", "08:00",
-        "09:00", "10:00", "11:00",
-        "12:00", "13:00", "14:00",
-        "15:00", "16:00", "17:00",
-        "18:00", "19:00", "20:00",
-        "21:00", "22:00", "23:00"
-    ],
-    "pressure_level": ["850"],
-    "data_format": "netcdf",
-    "download_format": "unarchived",
-    "area": [70, -20, -30, 50]
-}
-target = 'era5_download.nc'
-
-client.retrieve(dataset, request, target)
-'''    
 
