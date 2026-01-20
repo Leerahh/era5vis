@@ -1,7 +1,20 @@
 """
-Plot geopotential with wind barbs on a map. Plot SkewT diagram for selected location.
+Plotting utilities for ERA5 visualizations.
+
+This module provides functions to visualize ERA5 pressure-level data,
+including:
+
+- Horizontal maps of scalar fields with overlaid wind vectors
+- Vertical atmospheric soundings using Skew-T diagrams with hodographs
+
+The functions in this module assume that ERA5 data follow standard
+naming conventions (e.g. ``pressure_level``, ``valid_time``,
+``latitude``, ``longitude``) and are provided either as
+``xarray.DataArray`` objects or via ERA5 NetCDF files.
+
 Updated by Lina Brückner, January 2026:
-    - adding plot_scalar_with_wind and plot_skewT
+    - Added scalar-with-wind map plotting
+    - Added Skew-T and hodograph plotting utilities
 """
 
 from datetime import datetime
@@ -15,29 +28,37 @@ from metpy.units import units
 import metpy.calc as mpcalc
 
 def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
-    '''
-    Plot scalar as contours and wind barbs on top.
+    """
+    Plot a horizontal scalar field with wind vectors on a map.
+
+    The scalar field is displayed using filled contours, while wind
+    vectors are overlaid using quivers on a Plate Carrée projection.
 
     Parameters
     ----------
     da : xarray.DataArray
-        Scalar field to plot (e.g., geopotential)
+        Scalar field to plot (e.g. geopotential or temperature).
+        Must contain ``latitude``, ``longitude``, ``pressure_level``,
+        and ``valid_time`` coordinates.
     u : xarray.DataArray
-        Zonal wind component
+        Zonal wind component corresponding to ``da``.
     v : xarray.DataArray
-        Meridional wind component
-    filepath : str, optional
-        If provided, the plot is saved to this path
-    step : int, optional
-        Subsampling step for wind barbs (default: 9)
+        Meridional wind component corresponding to ``da``.
+    savepath : str or pathlib.Path, optional
+        Path where the generated PNG image will be saved.
+        If None, a filename is generated automatically.
+    step : int, default 9
+        Subsampling step for wind vectors. Values smaller than 1
+        are internally reset to 1.
 
     Returns
     -------
-    fig : matplotlib.figure.Figure
-        The figure object
-    '''
+    matplotlib.figure.Figure
+        The generated Matplotlib figure.
+    """
 
-    if step < 1:  # prevent step=0
+    # prevent step = 0
+    if step < 1:
         step = 1
 
     # initiate figure
@@ -98,22 +119,41 @@ def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
 
 def extract_skewT_profile(lat, lon, time, datafile, variables=None):
     """
-    “Extract a vertical thermodynamic and wind profile from ERA5 data.”
+    Extract a vertical thermodynamic and wind profile from ERA5 data.
+
+    The profile is extracted at the nearest grid point to the specified
+    latitude and longitude and at the specified time. Dewpoint temperature
+    is computed from specific humidity using MetPy.Pressure levels
+    are reordered from surface to upper atmosphere to comply with
+    Skew-T plotting conventions.
+
+    Parameters
+    ----------
+    lat : float
+        Latitude in degrees.
+    lon : float
+        Longitude in degrees.
+    time : str
+        Datetime string compatible with the ERA5 ``valid_time`` coordinate.
+    datafile : str or pathlib.Path
+        Path to the ERA5 NetCDF data file.
+    variables : dict, optional
+        Mapping of logical variable names to dataset variable names.
+        Defaults to ``{'T': 't', 'q': 'q', 'u': 'u', 'v': 'v'}``.
 
     Returns
     -------
     p : pint.Quantity
-        Pressure profile [hPa]
+        Pressure profile [hPa].
     T : pint.Quantity
-        Temperature profile [°C]
+        Temperature profile [°C].
     Td : pint.Quantity
-        Dewpoint profile [°C]
+        Dewpoint temperature profile [°C].
     u : pint.Quantity
-        Zonal wind [m/s]
-    v : pint.Quantity
-        Meridional wind [m/s]
+        Zonal wind profile [m s⁻¹].
     """
 
+    # use default ERA5 variable names 
     if variables is None:
         variables = {
             'T': 't',
@@ -122,33 +162,40 @@ def extract_skewT_profile(lat, lon, time, datafile, variables=None):
             'v': 'v',
         }
 
+    # open ERA5 netcdf dataset
     with xr.open_dataset(datafile) as ds:
+        # extract temperature profile
         T_da = ds[variables['T']] \
             .sel(latitude=lat, longitude=lon, method='nearest') \
             .sel(valid_time=time, method='nearest')
 
+        # extract specific humidity profile
         q_da = ds[variables['q']] \
             .sel(latitude=lat, longitude=lon, method='nearest') \
             .sel(valid_time=time, method='nearest')
 
+        # extract zonal wind component profile
         u_da = ds[variables['u']] \
             .sel(latitude=lat, longitude=lon, method='nearest') \
             .sel(valid_time=time, method='nearest')
 
+        # extract meridional wind component profile
         v_da = ds[variables['v']] \
             .sel(latitude=lat, longitude=lon, method='nearest') \
             .sel(valid_time=time, method='nearest')
 
-        # Pressure from the same DataArray
+        # extract pressure levels
         p = T_da.pressure_level.values * units.hPa
 
-        # Convert units
+        # convert units
         T = (T_da.values * units.kelvin).to(units.degC)
-        Td = mpcalc.dewpoint_from_specific_humidity(p, q_da.values).to(units.degC)
         u = u_da.values * units('m/s')
         v = v_da.values * units('m/s')
+        # compute dewpoint from specific humidity and pressure
+        Td = mpcalc.dewpoint_from_specific_humidity(p, q_da.values).to(units.degC)
 
-        # ERA5 is top-down → reverse for Skew-T
+
+        # order pressure profiles from the surface upwards
         p = p[::-1]
         T = T[::-1]
         Td = Td[::-1]
@@ -159,46 +206,76 @@ def extract_skewT_profile(lat, lon, time, datafile, variables=None):
 
 def plot_skewT(p, T, Td, u, v, lat, lon, time, datafile=None, variables=None, savepath=None):
     """
-    “Plot a Skew-T diagram from prepared profile data.”
+    Plot a Skew-T log-p diagram with wind barbs and a hodograph.
+
+    This function assumes that pressure, temperature, dewpoint,
+    and wind profiles have already been extracted and converted
+    to physical units.
+
+    Parameters
+    ----------
+    p : pint.Quantity
+        Pressure profile [hPa].
+    T : pint.Quantity
+        Temperature profile [°C].
+    Td : pint.Quantity
+        Dewpoint temperature profile [°C].
+    u : pint.Quantity
+        Zonal wind profile [m s⁻¹].
+    v : pint.Quantity
+        Meridional wind profile [m s⁻¹].
+    lat : float
+        Latitude of the sounding location.
+    lon : float
+        Longitude of the sounding location.
+    time : str
+        Time of the sounding.
+    savepath : str or pathlib.Path, optional
+        Path where the generated PNG image will be saved.
+
+    Returns
+    -------
+    matplotlib.figure.Figure
+        The generated Matplotlib figure.
     """
 
+    # initiate figure
     fig = plt.figure(figsize=(9, 9))
     skew = SkewT(fig, rotation=45, rect=(0.1, 0.1, 0.55, 0.85))
 
-    # Temperature & dewpoint
+    # plot temperature and dewpoint
     skew.plot(p, T, 'r', label='Temperature')
     skew.plot(p, Td, 'g', label='Dewpoint')
 
-    # Wind barbs
+    # plot wind barbs
     skew.plot_barbs(p, u, v)
 
-    # Axes limits
+    # set axes limits
     skew.ax.set_xlim(-30, 40)
     skew.ax.set_ylim(1000, 100)
     skew.ax.set_xlabel('Temperature [°C]')
     skew.ax.set_ylabel('Pressure [hPa]')
 
-    # Reference lines
+    # set reference lines in skew T
     skew.plot_dry_adiabats()
     skew.plot_moist_adiabats()
     skew.plot_mixing_lines()
 
-    # Hodograph
+    # add hodograph
     ax_hod = plt.axes((0.75, 0.75, 0.2, 0.2))
     h = Hodograph(ax_hod, component_range=50.)
     h.add_grid(increment=10)
     h.plot(u, v)
-
     ax_hod.set_xlabel('Wind speed [m s$^{-1}$]')
     ax_hod.set_ylabel('Wind speed [m s$^{-1}$]')
 
-    # Title
+    # set title
     skew.ax.set_title(
         f"Skew-T at {lat:.2f}°N, {lon:.2f}°E ({time})",
         fontsize=12
     )
 
-    # Save or return
+    # save figure
     if savepath is not None:
         fig.savefig(savepath, bbox_inches='tight')
         plt.close(fig)
