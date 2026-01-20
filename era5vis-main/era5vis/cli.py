@@ -1,70 +1,117 @@
 """
-Command line tools for ERA5vis.
+Command-line interface (CLI) for ERA5vis analysis plots.
 
-Manuela Lehner
-November 2025
+This module defines the ``era5vis_analysis_plots`` command-line tool, which
+allows users to generate ERA5 visualizations directly from the terminal.
+The CLI supports:
 
-Edited by Leah Herrfurth, December 2025:
-    - Using argparse instead of sys.args
-    - Adding config-based plotting
-Edited by Lina Brückner, January 2026:
-    - Adding parser arguments plot type and directory, u1, u2, lon and lat
-    - Implementing new parser arguments in _merge_config_and_args()
-    - Updating _generate_plot() for the two different plot types
+- scalar field plots with wind vectors
+- Skew-T diagrams at a selected location
+- configuration via YAML files
+- command-line overrides of configuration options
+
+The CLI acts as a thin wrapper around the plotting API in ``analysis_plots``
+and ``core``.
+
+Authors
+-------
+Manuela Lehner, November 2025
+
+Edits
+-----
+Leah Herrfurth, December 2025
+    - Switched from manual ``sys.argv`` parsing to ``argparse``
+    - Added config-based plotting
+
+Lina Brückner, January 2026
+    - Added parser arguments plot type, directory, wind component and location arguments
+    - Integrated new arguments into configuration merging logic
+    - Integrated fallback to example ERA5 datasets in ./data If downloading is disabled
 """
 
-import sys
-import webbrowser
-import argparse
-import yaml
 import era5vis
 from . import core
+from era5vis import analysis_plots
+from pathlib import Path
+import sys
+import argparse
+import yaml
+import webbrowser
+
 
 
 def analysis_plots(args):
-    """Main entry function for the era5vis_analysis_plots CLI tool."""
+    """
+    Main entry function for the ``era5vis_analysis_plots`` CLI tool.
+
+    This function:
+    1. Parses command-line arguments
+    2. Loads an optional YAML configuration file
+    3. Merges command-line arguments with configuration values
+    4. Executes the analysis plotting routine
+
+    Parameters
+    ----------
+    args : list of str
+        Command-line arguments (typically ``sys.argv[1:]``).
+
+    Returns
+    -------
+    pathlib.Path
+        Path to the generated HTML file.
+    """
+
     parsed_args = _parse_args(args)
 
+    # load configuration file if provided
     config = {}
     if parsed_args.config:
         config = _load_config(parsed_args.config)
 
+    # merge CLI arguments and configuration values
     params = _merge_config_and_args(parsed_args, config)
 
-    _generate_plot(**params)
+    return era5vis.analysis_plots.run_analysis_plots(**params)
 
 
 def era5vis_analysis_plots():
-    """Entry point for the era5vis_analysis_plots application script."""
+    """
+    Entry point for the ``era5vis_analysis_plots`` console script.
+
+    This function is intended to be registered as a console entry point
+    and forwards command-line arguments to :func:`analysis_plots`.
+    """
+    
     analysis_plots(sys.argv[1:])
 
 
 def _parse_args(args):
     """
-    Parse command-line arguments for era5vis_analysis_plots.
+    Parse command-line arguments for ``era5vis_analysis_plots``.
 
     Parameters
     ----------
-    args : list
-        output of sys.argv[1:].
+    args : list of str
+        Command-line arguments (typically ``sys.argv[1:]``).
 
     Returns
     -------
     argparse.Namespace
-        Parsed arguments.
+        Parsed command-line arguments.
     """
     parser = argparse.ArgumentParser(
         prog="era5vis_analysis_plots",
         description="Visualization of ERA5 analysis plots."
     )
-
+    # optional YAML configuration file
     parser.add_argument(
         "config",
         nargs="?",
         help="Path to configuration file."
     )
+    # version information
     parser.add_argument(
-        "-v", "--version",
+        "--v", "--version",
         action="version",
         version=(
             f"era5vis_analysis_plots: {era5vis.__version__}\n"
@@ -72,24 +119,33 @@ def _parse_args(args):
             "era5vis_analysis_plots is provided 'as is' without warranty of any kind"
         )
     )
+    
+    # scalar variable
     parser.add_argument(
-        "-p", "--parameter",
+        "--p", "--parameter",
+        dest="parameter",
         metavar="PARAM",
         help="ERA5 variable to plot (mandatory)"
     )
+    # pressure level
     parser.add_argument(
-        "-lvl", "--level",
+        "--lvl", "--level",
+        dest="level",
         metavar="LEVEL",
         type=int,
         help="Pressure level to plot (hPa) (mandatory)"
     )
+    
+    # time selection
     parser.add_argument(
-        "-t", "--time",
+        "--t", "--time",
+        dest="time",
         metavar="TIME",
         help="Time to plot (YYYYmmddHHMM)"
     )
     parser.add_argument(
-        "-ti", "--time_index",
+        "--ti", "--time_index",
+        dest="time_index",
         metavar="TIME_IND",
         type=int,
         default=0,
@@ -98,14 +154,19 @@ def _parse_args(args):
             "if both --time and --time_index are specified) (default=0)"
         )
     )
+
+    # plot type
     parser.add_argument(
-        "-pl", "--plot_type",
+        "--pl", "--plot_type",
+        dest="plot_type",
         choices=["scalar_wind", "skewT"],
         type=str,
         default="scalar_wind",
         help=("Select either scalar_wind or skewT"
         )
     )
+
+    # output handling
     parser.add_argument(
         "--no-browser",
         action="store_true",
@@ -120,29 +181,49 @@ def _parse_args(args):
         help=("Directory where the HTML file will be saved (overrides config)"
         )
     )
+
+    # wind components
     parser.add_argument(
-        "-u1", "--horizontal_wind",
+        "--u1", "--horizontal_wind",
         dest="u",
         help=("Horizontal wind component in m s$^{-1}$"
         )
     )
     parser.add_argument(
-        "-u2", "--meridional_wind",
+        "--u2", "--meridional_wind",
         dest="v",
         help=("Meridional wind component in m s$^{-1}$"
         )
     )
+
+    # location for skew-T plots
     parser.add_argument(
-        "-lat", "--latitude",
+        "--lat", "--latitude",
+        dest="lat",
+        type=float,
         help=("Latitude in degrees"
         )
     )
     parser.add_argument(
-        "-lon", "--longitude",
+        "--lon", "--longitude",
+        dest="lon",
+        type=float,
         help=("Longitude in degrees"
         )
     )
 
+    # data download flag
+    parser.add_argument(
+        "--dd", "--download_data",
+        dest="download_data",
+        action="store_true",
+        help=(
+            "Download ERA5 data from CDS. "
+            "If not set, packaged example data are used."
+        )
+    )
+
+    # print help and exit if no arguments are provided
     if not args:
         parser.print_help()
         sys.exit(0)
@@ -152,7 +233,7 @@ def _parse_args(args):
 
 def _load_config(config_path):
     """
-    Load configuration from a YAML file.
+    Load plotting configuration from a YAML file.
 
     Parameters
     ----------
@@ -162,8 +243,14 @@ def _load_config(config_path):
     Returns
     -------
     dict
-        Configuration dictionary.
+        Parsed configuration dictionary.
+
+    Raises
+    ------
+    ValueError
+        If the file extension is not ``.yaml`` or ``.yml``.
     """
+
     if not config_path.endswith((".yaml", ".yml")):
         raise ValueError("Config must be a .yaml or .yml file")
 
@@ -174,30 +261,32 @@ def _merge_config_and_args(args, config):
     """
     Merge command-line arguments with configuration file values.
 
-    Command-line arguments take precedence over configuration.
+    Command-line arguments always take precedence over configuration
+    file values.
 
     Parameters
     ----------
     args : argparse.Namespace
         Parsed command-line arguments.
     config : dict
-        Loaded configuration dictionary.
+        Configuration dictionary loaded from YAML.
 
     Returns
     -------
     dict
-        Final parameters for plotting.
+        Final parameter dictionary passed to the plotting API.
     """
-    # determine plot type: CLI argument overrides YAML
+
+    # determine plot type (CLI argument overrides configuration)
     plot_type = args.plot_type or config.get("plot_type", "scalar_wind")
 
-    # get plot-type-specific config section
+    # get plot-type-specific configuration section
     plot_config = config.get(plot_type, {}) if config else {}
 
-    # get common config
+    # get common configuration section
     common_config = config.get("common", {}) if config else {}
 
-    # merge CLI args with YAML: CLI overrides YAML
+    # merge CLI args with YAML (CLI arguments override configuration)
     params = {
         "plot_type": plot_type,
         "parameter": args.parameter or plot_config.get("parameter") or "z",
@@ -210,77 +299,11 @@ def _merge_config_and_args(args, config):
         "time_index": args.time_index or plot_config.get("time_index", 0),
         "directory": args.directory or common_config.get("directory", "."),
         "no_browser": args.no_browser or common_config.get("no_browser", False),
+        "download_data": (
+            args.download_data
+            if args.download_data
+            else common_config.get("download_data", True)
+        ),
     }
 
     return params
-
-
-def _generate_plot(**params):
-    """
-    Generate an ERA5 visualization and optionally open it in a browser.
-
-    Parameters
-    ----------
-    parameter : str
-        ERA5 variable to plot.
-    level : int
-        Pressure level in hPa.
-    time : str, optional
-        Time to plot (YYYYmmddHHMM), by default None
-    time_index : int, optional
-        Time index to plot, by default 0
-    plot_type : str, optional
-        Type of plot: "scalar_wind" (default) or "skewT"
-    no_browser : bool, optional
-        If True, do not open the browser, by default False
-    directory : str, optional
-        Directory where the HTML file will be saved (overrides config)
-    horizontal_wind: float, required for scalar_wind
-        Horizontal wind component in m s$^{-1}$
-    meridional_wind: float, required for scalar_wind
-        Meridional wind component in m s$^{-1}$
-    latitude: float, required for skewT
-        Latitude in degrees
-    longitude: float, required for skewT
-        Longitude in degrees
-    """
-    
-    plot_type = params.get("plot_type", "scalar_wind")
-
-    # define required parameters according to plot type
-    if plot_type == "scalar_wind":
-        required = ["parameter", "level", "u1", "u2"]
-        missing = [k for k in required if k not in params or params[k] is None]
-        if missing:
-            raise ValueError(f"For scalar_wind plots, missing: {', '.join(missing)}")
-
-        html_path = core.write_scalar_with_wind_html(
-            scalar=params["parameter"],
-            u=params["u1"],
-            v=params["u2"],
-            level=params["level"],
-            time=params.get("time"),
-            time_index=params.get("time_index", 0),
-            directory=params.get("directory"),
-        )
-
-    elif plot_type == "skewT":
-        required = ["lat", "lon", "time"]
-        missing = [k for k in required if k not in params or params[k] is None]
-        if missing:
-            raise ValueError(f"For skewT plots, missing: {', '.join(missing)}")
-
-        html_path = core.write_skewT_html(
-            lat=params["lat"],
-            lon=params["lon"],
-            time=params["time"],
-            directory=params.get("directory"),
-        )
-
-    else:
-        raise ValueError(f"Unknown plot_type '{plot_type}' specified.")
-
-    if params.get("no_browser", False):
-        print("File successfully generated at:", html_path)
-    else:
-        webbrowser.get().open_new_tab(f"file://{html_path}")
