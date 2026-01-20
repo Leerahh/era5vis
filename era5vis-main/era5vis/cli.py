@@ -26,6 +26,7 @@ Leah Herrfurth, December 2025
 Lina Brückner, January 2026
     - Added parser arguments plot type, directory, wind component and location arguments
     - Integrated new arguments into configuration merging logic
+    - Integrated fallback to example ERA5 datasets in ./data If downloading is disabled
 """
 
 import era5vis
@@ -217,7 +218,8 @@ def _parse_args(args):
         dest="download_data",
         action="store_true",
         help=(
-            "Download the needed ERA5 data for the specified parameter and level"
+            "Download ERA5 data from CDS. "
+            "If not set, packaged example data are used."
         )
     )
 
@@ -305,4 +307,3 @@ def _merge_config_and_args(args, config):
     }
 
     return params
-#    return target
