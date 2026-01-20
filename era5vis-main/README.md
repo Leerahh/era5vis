@@ -1,51 +1,126 @@
-# A visualization package for ERA5 data
+# era5vis
 
-**era5vis** offers command line tools to display ERA5 data in your browser.
+era5vis is a Python package providing command-line tools and a small API for visualizing ERA5 pressure-level reanalysis data in a web browser.
 
-It was written for the University of Innsbruck's
-[scientific programming](https://manuelalehner.github.io/scientific_programming)
-course as a package template for the semester project and is based on the 
-example packages [scispack](https://github.com/fmaussion/scispack) and
-[climvis](https://github.com/fmaussion/climvis) written by
-[Fabien Maussion](https://fabienmaussion.info).
+The package supports:
 
-## HowTo
+* horizontal scalar fields with wind vectors
+* Skew-T diagrams for atmospheric soundings
 
-Make sure you have all dependencies installed. These are:
-- numpy
-- xarray
-- netcdf4
-- matplotlib
-- pytest
+It was developed as part of the Scientific Programming course at the University of Innsbruck and serves both as a functional visualization tool and as a template for student semester projects.
 
-Download the package and install it in development mode. In the root directory
-type:
+The package is inspired by the example projects scispack and climvis by Fabien Maussion.
 
-    $ pip install -e .
 
-## Command line interface
+## Installation
 
-``setup.py`` defines an "entry point" for a script to be used as a
-command line program. Currently, the only command installed is ``era5vis_modellevel``.
+### Dependencies
 
-After installation, just type
+The following Python packages are required:
 
-    $ era5vis_modellevel --help
+* numpy
+* xarray
+* netCDF4
+* matplotlib
+* pytest
+* pyyaml
 
-to see what the tool can do.
+To download real ERA5 data, the additional dependency `cdsapi` is required.
+
+### Install in development mode
+
+From the repository root directory:
+
+pip install -e .
+
+
+## ERA5 Data Handling
+
+By default, era5vis uses example ERA5 NetCDF files shipped with the package.
+This allows the tools to run without downloading data or configuring a CDS account.
+
+To download real ERA5 data from the Copernicus Climate Data Store:
+
+1. Register at [https://cds.climate.copernicus.eu](https://cds.climate.copernicus.eu)
+2. Configure your API key in `~/.cdsapirc`
+3. Use the `--download_data` flag when running the CLI
+
+Downloaded files are cached locally and reused automatically.
+
+
+## Command Line Interface
+
+The main command-line tool is:
+
+era5vis_analysis_plots
+
+To display all available options:
+
+era5vis_analysis_plots --help
+
+To use the provided example configuration file:
+
+era5vis_analysis_plots config/config.yaml
+
+
+## Example Usage
+
+### Scalar field with wind vectors
+
+era5vis_analysis_plots
+--plot_type scalar_wind
+--parameter z
+--level 500
+--time 202501010000
+
+### Skew-T diagram
+
+era5vis_analysis_plots
+--plot_type skewT
+--lat 47.26
+--lon 11.38
+--time 202501010000
+
+The generated HTML file can be opened in a web browser with:
+
+start index.html
+
+
+## Configuration Files
+
+Plot settings can be stored in a YAML configuration file and passed to the CLI:
+
+era5vis_analysis_plots config.yaml
+
+Command-line arguments always override values defined in the configuration file.
+
+
+## Programmatic Usage
+
+era5vis can also be used directly from Python:
+
+from era5vis.analysis_plots import run_analysis_plots
+
+run_analysis_plots(
+    plot_type="scalar_wind",
+    parameter="z",
+    level=500,
+    time="202501010000",
+)
+
+The function returns the path to the generated HTML file.
+
 
 ## Testing
 
-I recommend to use [pytest](https://docs.pytest.org) for testing. To test
-the package, run
+Tests are run using pytest.
 
-    $ pytest .
+From the repository root directory:
 
-in the package's root directory.
+pytest .
 
 
 ## License
 
-With the exception of the ``setup.py`` file, which was adapted from the
-[sampleproject](https://github.com/pypa/sampleproject) package, all the
-code in this repository is dedicated to the public domain.
+Public domain.
+Provided for educational purposes without warranty.
