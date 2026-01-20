@@ -27,6 +27,11 @@ Lina Brückner, January 2026
     - Added parser arguments plot type, directory, wind component and location arguments
     - Integrated new arguments into configuration merging logic
     - Integrated fallback to example ERA5 datasets in ./data If downloading is disabled
+
+Leah Herrfurth, January 2026
+    - Added data download Elements
+    - Refactoring 
+    - Storing logic for analysis_plots outside
 """
 
 import era5vis
