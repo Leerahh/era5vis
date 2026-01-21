@@ -116,7 +116,7 @@ def _parse_args(args):
     )
     # version information
     parser.add_argument(
-        "--v", "--version",
+        "-v", "--version",
         action="version",
         version=(
             f"era5vis_analysis_plots: {era5vis.__version__}\n"
@@ -127,14 +127,14 @@ def _parse_args(args):
     
     # scalar variable
     parser.add_argument(
-        "--p", "--parameter",
+        "-p", "--parameter",
         dest="parameter",
         metavar="PARAM",
         help="ERA5 variable to plot (mandatory)"
     )
     # pressure level
     parser.add_argument(
-        "--lvl", "--level",
+        "-lvl", "--level",
         dest="level",
         metavar="LEVEL",
         type=int,
@@ -143,13 +143,13 @@ def _parse_args(args):
     
     # time selection
     parser.add_argument(
-        "--t", "--time",
+        "-t", "--time",
         dest="time",
         metavar="TIME",
         help="Time to plot (YYYYmmddHHMM)"
     )
     parser.add_argument(
-        "--ti", "--time_index",
+        "-ti", "--time_index",
         dest="time_index",
         metavar="TIME_IND",
         type=int,
@@ -162,7 +162,7 @@ def _parse_args(args):
 
     # plot type
     parser.add_argument(
-        "--pl", "--plot_type",
+        "-pl", "--plot_type",
         dest="plot_type",
         choices=["scalar_wind", "skewT"],
         type=str,
@@ -173,7 +173,7 @@ def _parse_args(args):
 
     # output handling
     parser.add_argument(
-        "--no-browser",
+        "-no-browser",
         action="store_true",
         help=(
             "Do not open a browser with the newly generated visualization, "
@@ -181,7 +181,7 @@ def _parse_args(args):
         )
     )
     parser.add_argument(
-        "--directory",
+        "-directory",
         metavar="DIR",
         help=("Directory where the HTML file will be saved (overrides config)"
         )
@@ -189,13 +189,13 @@ def _parse_args(args):
 
     # wind components
     parser.add_argument(
-        "--u1", "--horizontal_wind",
+        "-u1", "--horizontal_wind",
         dest="u",
         help=("Horizontal wind component in m s$^{-1}$"
         )
     )
     parser.add_argument(
-        "--u2", "--meridional_wind",
+        "-u2", "--meridional_wind",
         dest="v",
         help=("Meridional wind component in m s$^{-1}$"
         )
@@ -203,14 +203,14 @@ def _parse_args(args):
 
     # location for skew-T plots
     parser.add_argument(
-        "--lat", "--latitude",
+        "-lat", "--latitude",
         dest="lat",
         type=float,
         help=("Latitude in degrees"
         )
     )
     parser.add_argument(
-        "--lon", "--longitude",
+        "-lon", "--longitude",
         dest="lon",
         type=float,
         help=("Longitude in degrees"
@@ -219,7 +219,7 @@ def _parse_args(args):
 
     # data download flag
     parser.add_argument(
-        "--dd", "--download_data",
+        "-dd", "--download_data",
         dest="download_data",
         action="store_true",
         help=(
