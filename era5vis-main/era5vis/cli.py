@@ -288,9 +288,6 @@ def _merge_config_and_args(args, config):
     # get plot-type-specific configuration section
     plot_config = config.get(plot_type, {}) if config else {}
 
-    # get common configuration section
-    common_config = config.get("common", {}) if config else {}
-
     # merge CLI args with YAML (CLI arguments override configuration)
     params = {
         "plot_type": plot_type,
@@ -300,14 +297,14 @@ def _merge_config_and_args(args, config):
         "u2": getattr(args, "v", None) or plot_config.get("v") or "v",
         "lat": getattr(args, "lat", None) or plot_config.get("lat"),
         "lon": getattr(args, "lon", None) or plot_config.get("lon"),
-        "time": args.time or plot_config.get("time") or common_config.get("time"),
+        "time": args.time or plot_config.get("time") or config.get("time", "2025-10-02T00:00"),
         "time_index": args.time_index or plot_config.get("time_index", 0),
-        "directory": args.directory or common_config.get("directory", "."),
-        "no_browser": args.no_browser or common_config.get("no_browser", False),
+        "directory": args.directory or config.get("directory", "."),
+        "no_browser": args.no_browser or config.get("no_browser", False),
         "download_data": (
             args.download_data
             if args.download_data
-            else common_config.get("download_data", True)
+            else config.get("download_data", False)
         ),
     }
 
