@@ -6,6 +6,7 @@ The package supports:
 
 * horizontal scalar fields with wind vectors
 * Skew-T diagrams for atmospheric soundings
+* plotting vertical cross sections on a specific transect
 
 It was developed as part of the Scientific Programming course at the University of Innsbruck and serves both as a functional visualization tool and as a template for student semester projects.
 
@@ -80,6 +81,15 @@ era5vis_analysis_plots
 --lat 47.26
 --lon 11.38
 --time 202501010000
+
+### Vertical cross section
+
+era5vis_analysis_plots
+--plot_type vert_cross
+--parameter z
+--lat0 40 --lon0 0
+--lat1 60 --lon1 20
+--time 20250101000
 
 The generated HTML file can be opened in a web browser with:
 

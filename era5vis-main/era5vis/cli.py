@@ -164,10 +164,10 @@ def _parse_args(args):
     parser.add_argument(
         "-pl", "--plot_type",
         dest="plot_type",
-        choices=["scalar_wind", "skewT"],
+        choices=["scalar_wind", "skewT", "vert_cross"],
         type=str,
         default="scalar_wind",
-        help=("Select either scalar_wind or skewT"
+        help=("Select plot type: scalar_wind, skewT or vert_cross"
         )
     )
 
@@ -215,6 +215,34 @@ def _parse_args(args):
         type=float,
         help=("Longitude in degrees"
         )
+    )
+
+    # transect for vertical cross sections
+    parser.add_argument(
+        "-lat0",
+        type=float,
+        help="Start latitude of transect"
+    )
+    parser.add_argument(
+        "-lon0",
+        type=float,
+        help="Start longitude of transect"
+    )
+    parser.add_argument(
+        "-lat1",
+        type=float,
+        help="End latitude of transect"
+    )
+    parser.add_argument(
+        "-lon1",
+        type=float,
+        help="End longitude of transect"
+    )
+    parser.add_argument(
+        "-npoints",
+        type=int,
+        default=200,
+        help="Number of interpolation points along transect"
     )
 
     # data download flag
@@ -298,6 +326,11 @@ def _merge_config_and_args(args, config):
         "lat": getattr(args, "lat", None) or plot_config.get("lat"),
         "lon": getattr(args, "lon", None) or plot_config.get("lon"),
         "time": args.time or plot_config.get("time") or config.get("time", "2025-10-02T00:00"),
+        "lat0": getattr(args, "lat0", None) or plot_config.get("lat0"),
+        "lon0": getattr(args, "lon0", None) or plot_config.get("lon0"),
+        "lat1": getattr(args, "lat1", None) or plot_config.get("lat1"),
+        "lon1": getattr(args, "lon1", None) or plot_config.get("lon1"),
+        "npoints": getattr(args, "npoints", None) or plot_config.get("npoints", 200),
         "time_index": args.time_index or plot_config.get("time_index", 0),
         "directory": args.directory or config.get("directory", "."),
         "no_browser": args.no_browser or config.get("no_browser", False),

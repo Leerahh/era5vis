@@ -58,3 +58,45 @@ def test_run_analysis_plots_raises_on_missing_level():
     """Test that missing level raises ValueError."""
     with pytest.raises(ValueError, match="For scalar_wind, 'parameter' and 'level' are required."):
         run_analysis_plots(parameter="t", level=None)
+
+
+def test_run_analysis_plots_vert_cross_success(tmp_nc_file):
+    """Test that vert_cross plot type triggers core.write_vert_cross_html."""
+    fake_html = tmp_nc_file.parent / "vert_cross.html"
+    fake_html.touch()
+
+    with patch(
+        "era5vis.analysis_plots.Era5Cache.get_analysis_plots_data",
+        return_value=tmp_nc_file,
+    ), patch(
+        "era5vis.core.write_vert_cross_html",
+        return_value=fake_html,
+    ) as mock_vert, patch("webbrowser.get"):
+
+        html_path = run_analysis_plots(
+            plot_type="vert_cross",
+            parameter="z",
+            lat0=45,
+            lon0=-10,
+            lat1=55,
+            lon1=10,
+            time="2025030200",
+            download_data=True,
+            no_browser=True,
+        )
+
+        assert mock_vert.called
+        assert html_path.exists()
+        assert html_path.name == "vert_cross.html"
+
+
+def test_run_analysis_plots_vert_cross_missing_coords():
+    """Test that missing coordinates raise ValueError."""
+    with pytest.raises(ValueError, match="lat0, lon0, lat1, and lon1 are required"):
+        run_analysis_plots(
+            plot_type="vert_cross",
+            parameter="z",
+            lat0=45,
+            lon0=0,
+        )
+

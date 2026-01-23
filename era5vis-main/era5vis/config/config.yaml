@@ -23,3 +23,13 @@ directory: "./"         # Directory to save outputs
 no_browser: true    # Do not open the browser automatically
 download_data: false  # Do not download data 
 
+plot_type: vert_cross
+
+vert_cross:
+  parameter: z
+  lat0: 40
+  lon0: 0
+  lat1: 60
+  lon1: 20
+  npoints: 200
+

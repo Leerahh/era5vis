@@ -7,4 +7,4 @@
 # string is synchronised with `setup.py`, but for our purposes this is OK
 __version__ = '0.0.1'
 
-from era5vis.core import write_scalar_with_wind_html, write_skewT_html
+from era5vis.core import write_scalar_with_wind_html, write_skewT_html, write_vert_cross_html
