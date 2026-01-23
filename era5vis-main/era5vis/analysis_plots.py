@@ -29,6 +29,11 @@ def run_analysis_plots(
     u2="v",
     lat=None,
     lon=None,
+    lat0=None,
+    lon0=None,
+    lat1=None,
+    lon1=None,
+    npoints=200,
     directory=None,
     no_browser=False,
 ):
@@ -40,6 +45,7 @@ def run_analysis_plots(
 
     - a horizontal scalar field plot with wind vectors
     - a Skew-T diagram for a specified location
+    - a Vertical cross section plot
 
     Internally, the function handles ERA5 data retrieval via a cache,
     delegates plotting to the ``core`` and ``graphics`` modules, and
@@ -104,6 +110,9 @@ def run_analysis_plots(
     elif plot_type == "skewT":
         if lat is None or lon is None or time is None:
             raise ValueError("For skewT, 'lat', 'lon', and 'time' are required.")
+    elif plot_type == "vert_cross":
+        if None in (lat0, lon0, lat1, lon1):
+            raise ValueError("For vert_cross, lat0, lon0, lat1, and lon1 are required.")
     else:
         raise ValueError(f"Unknown plot_type '{plot_type}'.")
 
@@ -115,8 +124,12 @@ def run_analysis_plots(
         # Use packaged example datasets
         if plot_type == "scalar_wind":
             datafile = cfg.scalar_wind_datafile
-        else:  # skewT
+        elif plot_type == "skewT":
             datafile = cfg.skewT_datafile
+        elif plot_type == "vert_cross":
+            datafile = cfg.vert_cross_datafile
+        else:
+            datafile = cfg.scalar_wind_datafile
 
     else:
         # download / cache real ERA5 data
@@ -128,6 +141,14 @@ def run_analysis_plots(
             datafile = cache.get_analysis_plots_data(
                 variables=variables,
                 level=level,
+                time=time,
+            )
+
+        elif plot_type == "vert_cross":
+            variables = ["geopotential", "temperature", "u", "v"]
+            datafile = cache.get_analysis_plots_data(
+                variables=variables,
+                level=None,
                 time=time,
             )
 
@@ -157,6 +178,19 @@ def run_analysis_plots(
             level=level,
             time=time,
             time_index=time_index,
+            directory=directory,
+            datafile=datafile,
+        )
+
+    elif plot_type == "vert_cross":
+        html_path = core.write_vert_cross_html(
+            param=parameter,
+            u=u1,
+            v=u2,
+            start=(lat0, lon0),
+            end=(lat1, lon1),
+            time=time if time is not None else time_index,
+            npoints=npoints,
             directory=directory,
             datafile=datafile,
         )

@@ -244,3 +244,62 @@ def write_skewT_html(
         outfile.writelines(out)
 
     return outpath
+
+def write_vert_cross_html(
+    param, start, end, time, u='u', v='v', npoints=200, datafile=None, directory=None,
+):
+    """
+    Generate an HTML page containing a vertical cross section plot.
+    """
+
+    if datafile is None:
+        raise ValueError(
+        "datafile must be provided explicitly; example files are no longer used"
+        )
+
+    era5.check_file_availability(datafile)
+    era5.check_data_availability(param, time=time, datafile=datafile)
+
+    if directory is None:
+        directory = mkdtemp()
+    mkdir(directory)
+
+    print("Plotting vertical cross section")
+
+    time_safe = str(time).replace(":", "-").replace(" ", "_")
+    png = Path(directory) / f"vert_cross_{param}_{time_safe}.png"
+
+    da_main, wind_speed, dist = graphics.extract_vert_cross_section(
+        param=param,
+        u_param=u,
+        v_param=v,
+        start=start,
+        end=end,
+        time=time,
+        npoints=npoints,
+        datafile=datafile,
+    )
+
+    graphics.plot_vert_cross_section(
+        da_main=da_main,
+        wind_speed=wind_speed,
+        dist=dist,
+        param=param,
+        savepath=png,
+    )
+
+    outpath = Path(directory) / "index.html"
+    with open(cfg.html_template) as infile:
+        template = infile.read()
+
+    html = (
+        template
+        .replace("[PLOTTYPE]", "Vertical cross section")
+        .replace("[PLOTVAR]", param)
+        .replace("[IMGTYPE]", png.name)
+    )
+
+    with open(outpath, "w") as infile:
+        infile.write(html)
+
+    return outpath

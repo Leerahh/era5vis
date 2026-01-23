@@ -105,3 +105,56 @@ def test_extract_and_plot_skewT(tmp_path):
     assert fpath.suffix == '.png'
 
     plt.close(fig)
+
+def test_extract_and_plot_vert_cross_section(tmp_path):
+    """
+    Test vertical cross section extraction AND plotting.
+    """
+
+    # use example scalar_wind dataset (has pressure levels + z, u, v)
+    datafile = str(cfg.scalar_wind_datafile)
+
+    # choose a simple transect
+    start = (40.0, 0.0)
+    end = (60.0, 20.0)
+
+    # extract a valid time from dataset
+    with xr.open_dataset(datafile) as ds:
+        time = str(ds.valid_time.values[0])
+
+    # --- extraction ---
+    da_main, wind_speed, dist = graphics.extract_vert_cross_section(
+        param="z",
+        u_param="u",
+        v_param="v",
+        start=start,
+        end=end,
+        time=time,
+        npoints=200,
+        datafile=datafile,
+    )
+
+    # basic sanity checks
+    assert da_main is not None
+    assert da_main.ndim == 2            # (pressure_level, point)
+    assert dist.size == da_main.shape[1]
+
+    if wind_speed is not None:
+        assert wind_speed.shape == da_main.shape
+
+    # --- plotting ---
+    fpath = tmp_path / "vert_cross_test.png"
+
+    fig = graphics.plot_vert_cross_section(
+        da_main=da_main,
+        wind_speed=wind_speed,
+        dist=dist,
+        param="z",
+        savepath=fpath,
+    )
+
+    assert fig is not None
+    assert fpath.exists()
+    assert fpath.suffix == ".png"
+
+    plt.close(fig)

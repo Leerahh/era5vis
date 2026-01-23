@@ -26,6 +26,9 @@ import xarray as xr
 from metpy.plots import SkewT, Hodograph
 from metpy.units import units
 import metpy.calc as mpcalc
+import numpy as np
+from metpy.calc import wind_speed
+
 
 def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
     """
@@ -278,6 +281,155 @@ def plot_skewT(p, T, Td, u, v, lat, lon, time, datafile=None, variables=None, sa
     # save figure
     if savepath is not None:
         fig.savefig(savepath, bbox_inches='tight')
+        plt.close(fig)
+
+    return fig
+
+def extract_vert_cross_section(
+    param,
+    u_param,
+    v_param,
+    start,
+    end,
+    time,
+    datafile,
+    npoints=200,
+):
+    """
+    Extract data for a vertical cross section along a transect.
+
+    Returns
+    -------
+    da_main : xarray.DataArray
+        Main variable interpolated along transect (pressure, point)
+    wind : xarray.DataArray
+        Wind speed along transect (pressure, point)
+    dist : ndarray
+        Distance along transect in km
+    """
+
+    lat0, lon0 = start
+    lat1, lon1 = end
+
+    lats = np.linspace(lat0, lat1, npoints)
+    lons = np.linspace(lon0, lon1, npoints)
+
+    with xr.open_dataset(datafile) as ds:
+        da_main = (
+            ds[param]
+            .sel(valid_time=time, method="nearest")
+            .interp(latitude=("point", lats),
+                    longitude=("point", lons))
+        )
+
+        u = (
+            ds[u_param]
+            .sel(valid_time=time, method="nearest")
+            .interp(latitude=("point", lats),
+                    longitude=("point", lons))
+        )
+
+        v = (
+            ds[v_param]
+            .sel(valid_time=time, method="nearest")
+            .interp(latitude=("point", lats),
+                    longitude=("point", lons))
+        )
+
+    wind = wind_speed(u.values * units("m/s"),
+                      v.values * units("m/s")).magnitude
+
+    # distance along transect
+    dist = np.linspace(0, 1, npoints) * (
+        111 * np.hypot(lat1 - lat0, lon1 - lon0)
+    )
+
+    wind = xr.DataArray(
+        wind,
+        dims=da_main.dims,
+        coords=da_main.coords,
+        name="wind_speed",
+    )
+
+    return da_main, wind, dist
+
+def plot_vert_cross_section(
+    da_main,
+    wind_speed=None,
+    dist=None,
+    param="z",
+    savepath=None,
+):
+    """
+    Plot a vertical cross section with filled contours and dynamic wind levels.
+    """
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    if param == "t":
+        cmap = "RdYlBu_r"  
+        title_text = "Temperature (K)"
+        plot_levels = np.linspace(float(da_main.min()), float(da_main.max()), 15)
+    else:
+        cmap = "viridis"   
+        title_text = "Geopotential Height (m)"
+        plot_levels = 20
+
+    cf = ax.contourf(
+        dist,
+        da_main.pressure_level,
+        da_main,
+        levels=plot_levels,
+        cmap=cmap,
+        extend="both"
+    )
+    
+    cbar = plt.colorbar(cf, ax=ax, orientation="vertical", pad=0.02)
+    unit_label = "K" if param == "t" else "m"
+    cbar.set_label(f"{title_text} [{unit_label}]")
+
+    cs = ax.contour(
+        dist,
+        da_main.pressure_level,
+        da_main,
+        levels=10,
+        colors="black",
+        linewidths=0.5,
+        alpha=0.3
+    )
+    ax.clabel(cs, fontsize=7, fmt="%.0f")
+
+    # Highlight the Freezing Line if param is Temperature
+    if param == "t":
+        ax.contour(
+            dist, da_main.pressure_level, da_main,
+            levels=[273.15], colors="blue", linewidths=1.5, linestyles="--"
+        )
+
+    if wind_speed is not None:
+        max_w = float(wind_speed.max())
+        if max_w > 0.5:
+            raw_levels = np.linspace(0, max_w, 6)[1:]
+            dynamic_levels = np.unique(np.round(raw_levels * 2) / 2)
+
+            csw = ax.contour(
+                dist,
+                wind_speed.pressure_level,
+                wind_speed,
+                levels=dynamic_levels,
+                colors="red",
+                linewidths=1.5,
+            )
+            ax.clabel(csw, fontsize=8, fmt="%g m/s")
+
+    ax.invert_yaxis()
+    ax.set_xlabel("Distance along transect (km)")
+    ax.set_ylabel("Pressure (hPa)")
+    ax.set_title(f"Vertical Cross Section: {title_text}")
+
+    plt.tight_layout()
+
+    if savepath is not None:
+        fig.savefig(savepath, dpi=150, bbox_inches="tight")
         plt.close(fig)
 
     return fig

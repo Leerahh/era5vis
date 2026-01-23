@@ -39,6 +39,7 @@ downloaded_datafile = Path.cwd() / 'era5_download.nc'
 # plot type specific example datasets
 scalar_wind_datafile = Path(pkgdir) / 'data' / 'era5_example_dataset.nc'
 skewT_datafile      = Path(pkgdir) / 'data' / 'era5_example_1.nc'
+vert_cross_datafile = Path(pkgdir) / 'data' / 'era5_example_1.nc'
 
 def set_datafile(path: Path):
     """

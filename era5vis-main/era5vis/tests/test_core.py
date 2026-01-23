@@ -69,3 +69,33 @@ def test_write_skewT_html(tmp_path):
         directory=tmp_path,
         datafile=str(cfg.skewT_datafile)
     )
+
+
+def test_write_vert_cross_html(tmp_path):
+    """
+    Check that vertical cross-section HTML and PNG are created.
+    """
+
+    with xr.open_dataset(cfg.vert_cross_datafile) as ds:
+        time = str(ds.valid_time.values[0])
+
+    start = (40.0, 0.0)   # (lat, lon)
+    end = (60.0, 20.0)
+
+    htmlfile = core.write_vert_cross_html(
+        param="z",
+        start=start,
+        end=end,
+        time=time,
+        npoints=50,
+        directory=tmp_path,
+        datafile=str(cfg.vert_cross_datafile),
+    )
+
+    # HTML exists
+    assert htmlfile.exists()
+    assert htmlfile.suffix == ".html"
+
+    # PNG exists
+    pngs = list(htmlfile.parent.glob("*.png"))
+    assert len(pngs) > 0
