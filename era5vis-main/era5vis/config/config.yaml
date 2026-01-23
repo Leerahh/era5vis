@@ -17,6 +17,7 @@ skewT:
   lat: 48.21              # Latitude for Skew-T diagram
   lon: 16.37              # Longitude for Skew-T diagram
 
+<<<<<<< HEAD
 
 time: "2025-10-02T00:00"  # Time of the data to visualize
 directory: "./"         # Directory to save outputs
@@ -24,6 +25,13 @@ no_browser: true    # Do not open the browser automatically
 download_data: false  # Do not download data 
 
 plot_type: vert_cross
+=======
+common:
+  time: "2025-10-01T00:00"  # Time of the data to visualize
+  directory: "./"         # Directory to save outputs
+  no_browser: true    # Do not open the browser automatically
+  download_data: false  # Do not download data 
+>>>>>>> 3af9f0d (Removed double common in config)
 
 vert_cross:
   parameter: z
@@ -33,3 +41,7 @@ vert_cross:
   lon1: 20
   npoints: 200
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3af9f0d (Removed double common in config)
