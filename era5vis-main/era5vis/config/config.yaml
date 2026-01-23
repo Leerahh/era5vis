@@ -7,6 +7,12 @@
 
 plot_type: scalar_wind    # Generate a scalar field with wind vectors
 
+# Common settings, will be overitten by specific plot types if defined there
+time: "2025-10-02T00:00"  # Time of the data to visualize
+directory: "./"         # Directory to save outputs
+no_browser: true    # Do not open the browser automatically
+download_data: false  # Do not download data 
+
 scalar_wind:
   parameter: z            # Geopotential height
   level: 500              # Pressure level in hPa
@@ -16,13 +22,6 @@ scalar_wind:
 skewT:
   lat: 48.21              # Latitude for Skew-T diagram
   lon: 16.37              # Longitude for Skew-T diagram
-
-
-time: "2025-10-02T00:00"  # Time of the data to visualize
-directory: "./"         # Directory to save outputs
-no_browser: true    # Do not open the browser automatically
-download_data: false  # Do not download data 
-
 
 vert_cross:
   parameter: z

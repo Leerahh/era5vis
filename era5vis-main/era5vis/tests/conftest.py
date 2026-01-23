@@ -144,8 +144,8 @@ def make_incomplete_test_cases(retrieve_param_level_time_from_ds, temp_config_fi
     cases = []
 
     # CLI-only incomplete cases
-    cases.append(["-p", str(param), "--no-browser"])
-    cases.append(["-lvl", str(level), "--no-browser"])
+    cases.append(["--pl", "scalar_wind", "-p", str(param), "--no-browser"])
+    cases.append(["--pl", "scalar_wind", "--lvl", str(level), "--no-browser"])
 
     # config-only incomplete cases
     for config_file in temp_config_files:

@@ -83,7 +83,7 @@ def test_write_vert_cross_html(tmp_path):
     end = (60.0, 20.0)
 
     htmlfile = core.write_vert_cross_html(
-        param="z",
+        param="t",
         start=start,
         end=end,
         time=time,

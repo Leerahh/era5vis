@@ -205,9 +205,9 @@ def run_analysis_plots(
         )
 
     # open browser or print path
-    if not no_browser:
+    if no_browser is False:
         webbrowser.get().open_new_tab(f"file://{html_path}")
-    else:
-        print("File successfully generated at:", html_path)
+    
+    print("File successfully generated at:", html_path)
 
     return html_path
