@@ -35,15 +35,11 @@ Leah Herrfurth, January 2026
 """
 
 import era5vis
-from . import core
-from era5vis import analysis_plots
-from pathlib import Path
+from era5vis import analysis_plots as analysis_plots_api
 import sys
 import argparse
 import yaml
-import webbrowser
 from era5vis.utils.cli_or_config import cli_or_config
-
 
 
 def analysis_plots(args):
@@ -122,7 +118,7 @@ def _parse_args(args):
         version=(
             f"era5vis_analysis_plots: {era5vis.__version__}\n"
             "Licence: public domain\n"
-            "era5vis_analysis_plots is provided 'as is' without warranty of any kind"
+            "era5vis_analysis_plots is provided "as is" without warranty of any kind"
         )
     )
     
@@ -271,7 +267,7 @@ def _parse_args(args):
     # print help and exit if no arguments are provided
     if not args:
         parser.print_help()
-        sys.exit(0)
+        raise SystemExit(0)
 
     return parser.parse_args([str(a) for a in args])
 
@@ -302,6 +298,7 @@ def _load_config(config_path):
     with open(config_path, "r") as f:
         return yaml.safe_load(f)
 
+
 def _merge_config_and_args(args, config):
     """
     Merge command-line arguments with configuration file values.
@@ -330,26 +327,24 @@ def _merge_config_and_args(args, config):
 
     # merge CLI args with YAML (CLI arguments override configuration)
     params = {
-    "plot_type": plot_type,
-    "parameter": cli_or_config(args.parameter, plot_config.get("parameter")),
-    "level": cli_or_config(args.level, plot_config.get("level")),
-    "u1": cli_or_config(args.u, plot_config.get("u"), "u"),
-    "u2": cli_or_config(args.v, plot_config.get("v"), "v"),
-    "lat": cli_or_config(args.lat, plot_config.get("lat")),
-    "lon": cli_or_config(args.lon, plot_config.get("lon")),
-    "lat0": cli_or_config(args.lat0, plot_config.get("lat0")),
-    "lon0": cli_or_config(args.lon0, plot_config.get("lon0")),
-    "lat1": cli_or_config(args.lat1, plot_config.get("lat1")),
-    "lon1": cli_or_config(args.lon1, plot_config.get("lon1")),
-    "time": cli_or_config(args.time, plot_config.get("time"), "2025-10-01T00:00"),
-    "npoints": cli_or_config(args.npoints, plot_config.get("npoints"), 200),
-    "time_index": cli_or_config(args.time_index, plot_config.get("time_index"), 0),
-    "directory": cli_or_config(args.directory, config.get("directory"), "."),
-    "datafile": cli_or_config(args.datafile, config.get("datafile")),
-    "no_browser": cli_or_config(args.no_browser, config.get("no_browser"), False),
-    "download_data": cli_or_config(args.download_data, config.get("download_data"), False),
-}
+        "plot_type": plot_type,
+        "parameter": cli_or_config(args.parameter, plot_config.get("parameter")),
+        "level": cli_or_config(args.level, plot_config.get("level")),
+        "u1": cli_or_config(args.u, plot_config.get("u"), "u"),
+        "u2": cli_or_config(args.v, plot_config.get("v"), "v"),
+        "lat": cli_or_config(args.lat, plot_config.get("lat")),
+        "lon": cli_or_config(args.lon, plot_config.get("lon")),
+        "lat0": cli_or_config(args.lat0, plot_config.get("lat0")),
+        "lon0": cli_or_config(args.lon0, plot_config.get("lon0")),
+        "lat1": cli_or_config(args.lat1, plot_config.get("lat1")),
+        "lon1": cli_or_config(args.lon1, plot_config.get("lon1")),
+        "time": cli_or_config(args.time, plot_config.get("time"), "2025-10-01T00:00"),
+        "npoints": cli_or_config(args.npoints, plot_config.get("npoints"), 200),
+        "time_index": cli_or_config(args.time_index, plot_config.get("time_index"), 0),
+        "directory": cli_or_config(args.directory, config.get("directory"), "."),
+        "datafile": cli_or_config(args.datafile, config.get("datafile")),
+        "no_browser": cli_or_config(args.no_browser, config.get("no_browser"), False),
+        "download_data": cli_or_config(args.download_data, config.get("download_data"), False),
+    }
 
     return params
-
-
