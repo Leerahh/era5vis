@@ -234,7 +234,7 @@ def _parse_args(args):
         help="End latitude of transect"
     )
     parser.add_argument(
-        "-lon1",
+        "--lon1",
         type=float,
         help="End longitude of transect"
     )
