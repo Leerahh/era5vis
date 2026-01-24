@@ -113,7 +113,7 @@ def run_analysis_plots(
     if plot_type == "scalar_wind":
         if parameter is None or level is None:
             raise ValueError(
-                "For scalar_wind, "parameter" and "level" are required."
+                "For scalar_wind, 'parameter' and 'level' are required."
             )
     elif plot_type == "skewT":
         if lat is None or lon is None or time is None:
