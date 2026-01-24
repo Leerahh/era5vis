@@ -14,7 +14,7 @@ naming conventions (e.g. ``pressure_level``, ``valid_time``,
 
 Updated by Lina Brückner, January 2026:
     - Added scalar-with-wind map plotting
-    - Added Skew-T and hodograph plotting utilities
+    - Added Skew-T and hodograph plotting
 """
 
 from datetime import datetime
