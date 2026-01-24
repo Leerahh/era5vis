@@ -94,7 +94,7 @@ era5vis_analysis_plots
 --parameter z
 --lat0 40 --lon0 0
 --lat1 60 --lon1 20
---time 20251001000
+--time 202510010000
 
 The generated HTML file can be opened in a web browser with:
 
