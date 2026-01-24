@@ -118,7 +118,7 @@ def run_analysis_plots(
     elif plot_type == "skewT":
         if lat is None or lon is None or time is None:
             raise ValueError(
-                "For skewT, "lat", "lon", and "time" are required."
+                "For skewT, 'lat', 'lon' and 'time' are required."
             )
     elif plot_type == "vert_cross":
         if None in (lat0, lon0, lat1, lon1):
@@ -126,11 +126,11 @@ def run_analysis_plots(
                 "For vert_cross, lat0, lon0, lat1, and lon1 are required."
             )
     else:
-        raise ValueError(f"Unknown plot_type "{plot_type}".")
+        raise ValueError(f"Unknown plot_type '{plot_type}'.")
     
     if download_data and datafile is not None:
         raise ValueError(
-            "Cannot specify both "download_data=True" and a "datafile"."
+            "Cannot specify both 'download_data=True' and a 'datafile'."
         )
   
     # decide data source
