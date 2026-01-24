@@ -6,6 +6,7 @@ including:
 
 - Horizontal maps of scalar fields with overlaid wind vectors
 - Vertical atmospheric soundings using Skew-T diagrams with hodographs
+- Vertical cross sections
 
 The functions in this module assume that ERA5 data follow standard
 naming conventions (e.g. ``pressure_level``, ``valid_time``,
@@ -43,7 +44,7 @@ def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
     Parameters
     ----------
     da : xarray.DataArray
-        Scalar field to plot (e.g. geopotential or temperature).
+        Scalar field to plot (e.g. geopotential).
         Must contain ``latitude``, ``longitude``, ``pressure_level``,
         and ``valid_time`` coordinates.
     u : xarray.DataArray
@@ -152,7 +153,6 @@ def extract_skewT_profile(lat, lon, time, datafile, variables=None):
         Path to the ERA5 NetCDF data file.
     variables : dict, optional
         Mapping of logical variable names to dataset variable names.
-        Defaults to ``{'T': 't', 'q': 'q', 'u': 'u', 'v': 'v'}``.
 
     Returns
     -------
@@ -222,9 +222,9 @@ def plot_skewT(p, T, Td, u, v, lat, lon, time, datafile=None, variables=None, sa
     """
     Plot a Skew-T log-p diagram with wind barbs and a hodograph.
 
-    This function assumes that pressure, temperature, dewpoint,
-    and wind profiles have already been extracted and converted
-    to physical units.
+    This function assumes that vertical profiles of pressure,
+    temperature, dewpoint, and wind components have already
+    been extracted and converted to physical units.
 
     Parameters
     ----------
