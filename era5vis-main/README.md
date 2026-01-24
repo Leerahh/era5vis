@@ -72,7 +72,7 @@ era5vis_analysis_plots
 --plot_type scalar_wind
 --parameter z
 --level 500
---time 202501010000
+--time 202510010000
 
 ### Skew-T diagram
 
@@ -80,7 +80,7 @@ era5vis_analysis_plots
 --plot_type skewT
 --lat 47.26
 --lon 11.38
---time 202501010000
+--time 202510010000
 
 ### Vertical cross section
 
@@ -89,7 +89,7 @@ era5vis_analysis_plots
 --parameter z
 --lat0 40 --lon0 0
 --lat1 60 --lon1 20
---time 20250101000
+--time 20251001000
 
 The generated HTML file can be opened in a web browser with:
 
