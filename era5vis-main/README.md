@@ -148,7 +148,7 @@ era5vis_analysis_plots config/config.yaml --datafile path/to/file
 
 | Parameter          | Description                                                                                                         |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `--plot_type`      | Type of plot. Options: `vert_cross`, `horiz`                                                                        |
+| `--plot_type`      | Type of plot. Options: `vert_cross`, `scalar_wind`, `skewT`                                                                        |
 | `--parameter`      | Atmospheric variable. Examples: `t` (temperature), `u` (zonal wind), `v` (meridional wind), `q` (specific humidity) |
 | `--lat0`, `--lon0` | Start coordinates for vertical cross-section                                                                        |
 | `--lat1`, `--lon1` | End coordinates for vertical cross-section                                                                          |
