@@ -132,7 +132,7 @@ def cli_or_config(cli_val, config_val, default=None):
 
 For an automated download of the needed data:
 ~~~
-era5vis_analysis_plots config.yaml --data_download
+era5vis_analysis_plots config/config.yaml --download_data
 ~~~
 to the CLI.
 
@@ -141,7 +141,7 @@ Downloaded Data is cached and reused.
 ## Datafile
 To analyse an already downloaded datafile:
 ~~~
-era5vis_analysis_plots config.yaml --datafile path/to/file
+era5vis_analysis_plots config/config.yaml --datafile path/to/file
 ~~~
 
 ## Required Parameters (depending on specific plottype)
