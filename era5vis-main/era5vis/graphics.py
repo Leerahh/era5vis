@@ -136,7 +136,7 @@ def extract_skewT_profile(lat, lon, time, datafile, variables=None):
 
     The profile is extracted at the nearest grid point to the specified
     latitude and longitude and at the specified time. Dewpoint temperature
-    is computed from specific humidity using MetPy.Pressure levels
+    is computed from specific humidity using MetPy. Pressure levels
     are reordered from surface to upper atmosphere to comply with
     Skew-T plotting conventions.
 
