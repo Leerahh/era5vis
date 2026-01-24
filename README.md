@@ -98,7 +98,8 @@ era5vis_analysis_plots
 
 The generated HTML file can be opened in a web browser with:
 
-start index.html
+start index.html (For Windows)
+firefox index.html (For Linux & Windows)
 
 
 ## Configuration Files
