@@ -42,6 +42,7 @@ import sys
 import argparse
 import yaml
 import webbrowser
+from era5vis.utils.cli_or_config import cli_or_config
 
 
 
@@ -220,29 +221,40 @@ def _parse_args(args):
     # transect for vertical cross sections
     parser.add_argument(
         "--lat0",
+        dest="lat0",
         type=float,
         help="Start latitude of transect"
     )
     parser.add_argument(
         "--lon0",
+        dest="lon0",
         type=float,
         help="Start longitude of transect"
     )
     parser.add_argument(
         "--lat1",
+        dest="lat1",
         type=float,
         help="End latitude of transect"
     )
     parser.add_argument(
-        "-lon1",
+        "--lon1",
+        dest="lon1",
         type=float,
         help="End longitude of transect"
     )
     parser.add_argument(
         "--npoints",
+        dest="npoints",
         type=int,
         default=200,
         help="Number of interpolation points along transect"
+    )
+
+    parser.add_argument(
+        "--df", "--datafile",
+        dest="datafile",
+        help=("Path to ERA5 data file (overrides config)")
     )
 
     # data download flag
@@ -318,27 +330,26 @@ def _merge_config_and_args(args, config):
 
     # merge CLI args with YAML (CLI arguments override configuration)
     params = {
-        "plot_type": plot_type,
-        "parameter": args.parameter or plot_config.get("parameter"),
-        "level": args.level or plot_config.get("level"),
-        "u1": getattr(args, "u", None) or plot_config.get("u") or "u",
-        "u2": getattr(args, "v", None) or plot_config.get("v") or "v",
-        "lat": getattr(args, "lat", None) or plot_config.get("lat"),
-        "lon": getattr(args, "lon", None) or plot_config.get("lon"),
-        "time": args.time or plot_config.get("time") or config.get("time", "2025-10-02T00:00"),
-        "lat0": getattr(args, "lat0", None) or plot_config.get("lat0"),
-        "lon0": getattr(args, "lon0", None) or plot_config.get("lon0"),
-        "lat1": getattr(args, "lat1", None) or plot_config.get("lat1"),
-        "lon1": getattr(args, "lon1", None) or plot_config.get("lon1"),
-        "npoints": getattr(args, "npoints", None) or plot_config.get("npoints", 200),
-        "time_index": args.time_index or plot_config.get("time_index", 0),
-        "directory": args.directory or config.get("directory", "."),
-        "no_browser": args.no_browser or config.get("no_browser", False),
-        "download_data": (
-            args.download_data
-            if args.download_data
-            else config.get("download_data", False)
-        ),
-    }
+    "plot_type": plot_type,
+    "parameter": cli_or_config(args.parameter, plot_config.get("parameter")),
+    "level": cli_or_config(args.level, plot_config.get("level")),
+    "u1": cli_or_config(args.u, plot_config.get("u"), "u"),
+    "u2": cli_or_config(args.v, plot_config.get("v"), "v"),
+    "lat": cli_or_config(args.lat, plot_config.get("lat")),
+    "lon": cli_or_config(args.lon, plot_config.get("lon")),
+    "lat0": cli_or_config(args.lat0, plot_config.get("lat0")),
+    "lon0": cli_or_config(args.lon0, plot_config.get("lon0")),
+    "lat1": cli_or_config(args.lat1, plot_config.get("lat1")),
+    "lon1": cli_or_config(args.lon1, plot_config.get("lon1")),
+    "time": cli_or_config(args.time, plot_config.get("time"), "2025-10-01T00:00"),
+    "npoints": cli_or_config(args.npoints, plot_config.get("npoints"), 200),
+    "time_index": cli_or_config(args.time_index, plot_config.get("time_index"), 0),
+    "directory": cli_or_config(args.directory, config.get("directory"), "."),
+    "datafile": cli_or_config(args.datafile, config.get("datafile")),
+    "no_browser": cli_or_config(args.no_browser, config.get("no_browser"), False),
+    "download_data": cli_or_config(args.download_data, config.get("download_data"), False),
+}
 
     return params
+
+

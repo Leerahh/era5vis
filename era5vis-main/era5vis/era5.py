@@ -123,7 +123,7 @@ def check_data_availability(param, level=None, time=None, time_ind=None, datafil
                 time_dt = np.datetime64(pd.to_datetime(time))
             except Exception:
                 raise ValueError(
-                    f"Time '{time}' could not be parsed as a datetime."
+                    f"Time '{time}' could not be parsed as a datetime. Time must follow the format 'YYYYmmddHHMM'."
                 )
 
             times = da["valid_time"].values

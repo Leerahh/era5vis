@@ -1,4 +1,4 @@
-# Description: Configuration for scalar wind plot and Skew-t plot
+# Example configuration file for era5vis analysis plots
 # Author: Leah Herrfurth
 # Edited by: Lina Brückner (Adding scalar_wind and skewT)
 

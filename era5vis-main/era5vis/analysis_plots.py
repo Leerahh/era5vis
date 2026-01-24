@@ -12,11 +12,17 @@ command-line interface and programmatic usage. It orchestrates:
 Author: Leah Herrfurth
 Updated by Lina Brückner, January 2026:
     - Added support for multiple plot types (scalar_wind, skewT)
+    - added logging for better traceability
+    - added option for own datafile usage
 """
 
 import webbrowser
+import logging
 from era5vis.data_access.era5_cache import Era5Cache
 from era5vis import core, cfg
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def run_analysis_plots(
     parameter=None,
@@ -35,6 +41,7 @@ def run_analysis_plots(
     lon1=None,
     npoints=200,
     directory=None,
+    datafile=None,
     no_browser=False,
 ):
     """
@@ -101,7 +108,6 @@ def run_analysis_plots(
     ValueError
         If an unknown ``plot_type`` is specified.
     """
-    
 
     # validate required parameters
     if plot_type == "scalar_wind":
@@ -115,12 +121,16 @@ def run_analysis_plots(
             raise ValueError("For vert_cross, lat0, lon0, lat1, and lon1 are required.")
     else:
         raise ValueError(f"Unknown plot_type '{plot_type}'.")
-
+    
+    if download_data and datafile is not None:
+        raise ValueError("Cannot specify both 'download_data=True' and a 'datafile'.")
+  
     # decide data source
-    use_example_data = not download_data
+    use_example_data = not download_data and datafile is None
 
     # select datafile
     if use_example_data:
+        logger.info("Using packaged example datasets for plotting.")
         # Use packaged example datasets
         if plot_type == "scalar_wind":
             datafile = cfg.scalar_wind_datafile
