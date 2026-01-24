@@ -1,23 +1,22 @@
-# Description: Scalar wind plot and Skew-t configuration
+# Description: Configuration for scalar wind plot and Skew-t plot
 # Author: Leah Herrfurth
 # Edited by: Lina Brückner (Adding scalar_wind and skewT)
 
 
 
-
-plot_type: scalar_wind    # Generate a scalar field with wind vectors
+plot_type: scalar_wind    # generate a scalar field with wind vectors
 
 # Common settings, will be overitten by specific plot types if defined there
-time: "2025-10-02T00:00"  # Time of the data to visualize
-directory: "./"         # Directory to save outputs
-no_browser: true    # Do not open the browser automatically
-download_data: false  # Do not download data 
+time: "2025-10-02T00:00"  # time of the data to visualize
+directory: "./"         # directory to save outputs
+no_browser: true    # do not open the browser automatically
+download_data: false  # do not download data 
 
 scalar_wind:
-  parameter: z            # Geopotential height
-  level: 500              # Pressure level in hPa
-  u: u                     # Zonal wind component
-  v: v                     # Meridional wind component
+  parameter: z            # geopotential height
+  level: 500              # pressure level in hPa
+  u: u                    # zonal wind component
+  v: v                    # meridional wind component
 
 skewT:
   lat: 48.21              # Latitude for Skew-T diagram
@@ -30,4 +29,3 @@ vert_cross:
   lat1: 60
   lon1: 20
   npoints: 200
-
