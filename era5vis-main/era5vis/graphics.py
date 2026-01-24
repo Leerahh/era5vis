@@ -178,23 +178,23 @@ def extract_skewT_profile(lat, lon, time, datafile, variables=None):
     # open ERA5 netcdf dataset
     with xr.open_dataset(datafile) as ds:
         # extract temperature profile
-        T_da = ds[variables['T']]
-            .sel(latitude=lat, longitude=lon, method='nearest')
+        T_da = ds[variables['T']] \
+            .sel(latitude=lat, longitude=lon, method='nearest') \
             .sel(valid_time=time, method='nearest')
 
         # extract specific humidity profile
-        q_da = ds[variables['q']]
-            .sel(latitude=lat, longitude=lon, method='nearest')
+        q_da = ds[variables['q']] \
+            .sel(latitude=lat, longitude=lon, method='nearest') \
             .sel(valid_time=time, method='nearest')
 
         # extract zonal wind component profile
         u_da = ds[variables['u']] \
-            .sel(latitude=lat, longitude=lon, method='nearest')
-            .sel(valid_time=time, method='nearest')
+            .sel(latitude=lat, longitude=lon, method='nearest') \
+            .sel(valid_time=time, method='nearest') \
 
         # extract meridional wind component profile
         v_da = ds[variables['v']] \
-            .sel(latitude=lat, longitude=lon, method='nearest')
+            .sel(latitude=lat, longitude=lon, method='nearest') \
             .sel(valid_time=time, method='nearest')
 
         # extract pressure levels
