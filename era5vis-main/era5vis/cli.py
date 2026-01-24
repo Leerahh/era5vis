@@ -118,7 +118,7 @@ def _parse_args(args):
         version=(
             f"era5vis_analysis_plots: {era5vis.__version__}\n"
             "Licence: public domain\n"
-            "era5vis_analysis_plots is provided "as is" without warranty of any kind"
+            "era5vis_analysis_plots is provided \"as is\" without warranty of any kind"
         )
     )
     
