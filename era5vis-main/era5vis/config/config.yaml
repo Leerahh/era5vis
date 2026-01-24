@@ -23,7 +23,7 @@ skewT:
   lon: 16.37              # Longitude for Skew-T diagram
 
 vert_cross:
-  parameter: z
+  parameter: t
   lat0: 40
   lon0: 0
   lat1: 60
