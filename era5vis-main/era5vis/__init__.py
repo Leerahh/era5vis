@@ -1,5 +1,6 @@
-""" Updated by Lina Brückner, January 2026:
-    - import write_scalar_with_wind_html and write_skewT_html instead of write_html
+"""
+Edited by Lina Brückner, January 2026:
+    - Added import write_scalar_with_wind_html and write_skewT_html instead of write_html
 """
 
 # This is a hard coded version string.
