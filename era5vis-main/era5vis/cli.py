@@ -345,10 +345,10 @@ def _merge_config_and_args(args, config):
     "npoints": cli_or_config(args.npoints, plot_config.get("npoints"), 200),
     "time_index": cli_or_config(args.time_index, plot_config.get("time_index"), 0),
     "directory": cli_or_config(args.directory, config.get("directory"), "."),
+    "datafile": cli_or_config(args.datafile, config.get("datafile")),
     "no_browser": cli_or_config(args.no_browser, config.get("no_browser"), False),
     "download_data": cli_or_config(args.download_data, config.get("download_data"), False),
 }
-    print (params)
 
     return params
 
