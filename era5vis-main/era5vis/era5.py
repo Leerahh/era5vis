@@ -5,11 +5,12 @@ This module contains helper functions for interacting with ERA5 NetCDF
 datasets. It provides functionality to:
 
 - verify that an ERA5 data file exists and can be opened
-- validate the availability of variables, pressure levels, and times
+- validate the availability of variables, pressure levels and times
 - extract horizontal cross sections at a given pressure level and time
- Edits:
-    Leah Herrfurth, December 2025
-    - added check_file_availability
+
+Edits:
+ Leah Herrfurth, December 2025
+    - Added check_file_availability
     
 """
 
@@ -45,7 +46,8 @@ def check_file_availability(datafile):
             pass
     except FileNotFoundError:
         raise FileNotFoundError(
-            f"The specified data file does not exist. Please set a valid path in cfg.py."
+            f"The specified data file does not exist.
+             Please set a valid path in cfg.py."
         )
     except Exception as e:
         raise RuntimeError(
@@ -53,7 +55,13 @@ def check_file_availability(datafile):
         )
 
 
-def check_data_availability(param, level=None, time=None, time_ind=None, datafile=None):
+def check_data_availability(
+ param,
+ level=None,
+ time=None,
+ time_ind=None,
+ datafile=None
+):
     """
     Check whether a variable, pressure level, and time exist in an ERA5 dataset.
 
@@ -85,7 +93,6 @@ def check_data_availability(param, level=None, time=None, time_ind=None, datafil
 
     # open and fully load the dataset to ensure all metadata are available
     with xr.open_dataset(datafile).load() as ds:
-        
         # check variable existence
         if param not in ds.variables:
             raise KeyError(
@@ -123,7 +130,8 @@ def check_data_availability(param, level=None, time=None, time_ind=None, datafil
                 time_dt = np.datetime64(pd.to_datetime(time))
             except Exception:
                 raise ValueError(
-                    f"Time '{time}' could not be parsed as a datetime. Time must follow the format 'YYYYmmddHHMM'."
+                    f"Time '{time}' could not be parsed as a datetime.
+                     Time must follow the format 'YYYYmmddHHMM'."
                 )
 
             times = da["valid_time"].values
@@ -135,7 +143,6 @@ def check_data_availability(param, level=None, time=None, time_ind=None, datafil
                     f"Available time range: {times.min()} – {times.max()}"
                 )
 
-            
         # check time by index
         if time_ind is not None:
             if "valid_time" not in da.dims:
@@ -145,7 +152,7 @@ def check_data_availability(param, level=None, time=None, time_ind=None, datafil
 
             if not (0 <= time_ind < da.sizes["valid_time"]):
                 raise IndexError(
-                    f"time_ind={time_ind} out of bounds for variable '{param}'. "
+                    f"time_ind={time_ind} out of bounds for variable '{param}'."
                     f"Valid range: 0 … {da.sizes['valid_time'] - 1}"
                 )
 
@@ -182,7 +189,6 @@ def horiz_cross_section(param, lvl, time, datafile):
         If ``time`` is neither a string nor an integer.
     """
     
-
     # open and fully load dataset
     with xr.open_dataset(datafile).load() as ds:
         # select by nearest valid_time if time is given as a string
@@ -192,6 +198,6 @@ def horiz_cross_section(param, lvl, time, datafile):
         elif isinstance(time, int):
             da = ds[param].sel(pressure_level=lvl).isel(valid_time=time)
         else:
-            raise TypeError('time must be a time format string or integer')
+            raise TypeError("Time must be a time format string or integer")
 
     return da
