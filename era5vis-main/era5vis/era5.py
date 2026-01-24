@@ -46,8 +46,7 @@ def check_file_availability(datafile):
             pass
     except FileNotFoundError:
         raise FileNotFoundError(
-            f"The specified data file does not exist.
-             Please set a valid path in cfg.py."
+            f"The specified data file does not exist, set a valid path in cfg.py."
         )
     except Exception as e:
         raise RuntimeError(
