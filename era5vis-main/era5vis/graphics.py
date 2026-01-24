@@ -15,6 +15,9 @@ naming conventions (e.g. ``pressure_level``, ``valid_time``,
 Updated by Lina Brückner, January 2026:
     - Added scalar-with-wind map plotting
     - Added Skew-T and hodograph plotting
+
+Updated by Ilias, January 2026:
+    - Added vertical cross section
 """
 
 from datetime import datetime
@@ -102,7 +105,13 @@ def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
     ax.add_feature(cfeature.BORDERS, linestyle=':')
     
     # add gridlines with labels
-    gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.7, linestyle='--')
+    gl = ax.gridlines(
+        draw_labels=True,
+        linewidth=0.5,
+        color='gray',
+        alpha=0.7,
+        linestyle='--'
+    )
     gl.top_labels = False
     gl.right_labels = False
     gl.xformatter = LongitudeFormatter()
@@ -110,8 +119,8 @@ def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
 
     # save figure
     if savepath is None:
-        time_safe = str(time).replace(":", "-").replace(" ", "_")
-        filename = f"scalar_wind_{da.name}_{da.pressure_level.to_numpy()}_{time_safe}.png"
+        time_safe = str(time).replace(':', '-').replace(' ', '_')
+        filename = f'scalar_wind_{da.name}_{da.pressure_level.to_numpy()}_{time_safe}.png'
         fig.savefig(filename, bbox_inches='tight')
         plt.close(fig)
     else:
@@ -119,6 +128,7 @@ def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
         plt.close(fig)
 
     return fig
+
 
 def extract_skewT_profile(lat, lon, time, datafile, variables=None):
     """
@@ -168,23 +178,23 @@ def extract_skewT_profile(lat, lon, time, datafile, variables=None):
     # open ERA5 netcdf dataset
     with xr.open_dataset(datafile) as ds:
         # extract temperature profile
-        T_da = ds[variables['T']] \
-            .sel(latitude=lat, longitude=lon, method='nearest') \
+        T_da = ds[variables['T']]
+            .sel(latitude=lat, longitude=lon, method='nearest')
             .sel(valid_time=time, method='nearest')
 
         # extract specific humidity profile
-        q_da = ds[variables['q']] \
-            .sel(latitude=lat, longitude=lon, method='nearest') \
+        q_da = ds[variables['q']]
+            .sel(latitude=lat, longitude=lon, method='nearest')
             .sel(valid_time=time, method='nearest')
 
         # extract zonal wind component profile
         u_da = ds[variables['u']] \
-            .sel(latitude=lat, longitude=lon, method='nearest') \
+            .sel(latitude=lat, longitude=lon, method='nearest')
             .sel(valid_time=time, method='nearest')
 
         # extract meridional wind component profile
         v_da = ds[variables['v']] \
-            .sel(latitude=lat, longitude=lon, method='nearest') \
+            .sel(latitude=lat, longitude=lon, method='nearest')
             .sel(valid_time=time, method='nearest')
 
         # extract pressure levels
@@ -206,6 +216,7 @@ def extract_skewT_profile(lat, lon, time, datafile, variables=None):
         v = v[::-1]
 
     return p, T, Td, u, v
+
 
 def plot_skewT(p, T, Td, u, v, lat, lon, time, datafile=None, variables=None, savepath=None):
     """
@@ -274,7 +285,7 @@ def plot_skewT(p, T, Td, u, v, lat, lon, time, datafile=None, variables=None, sa
 
     # set title
     skew.ax.set_title(
-        f"Skew-T at {lat:.2f}°N, {lon:.2f}°E ({time})",
+        f'Skew-T at {lat:.2f}°N, {lon:.2f}°E ({time})',
         fontsize=12
     )
 
@@ -284,6 +295,7 @@ def plot_skewT(p, T, Td, u, v, lat, lon, time, datafile=None, variables=None, sa
         plt.close(fig)
 
     return fig
+
 
 def extract_vert_cross_section(
     param,
@@ -353,6 +365,7 @@ def extract_vert_cross_section(
 
     return da_main, wind, dist
 
+    
 def plot_vert_cross_section(
     da_main,
     wind_speed=None,
