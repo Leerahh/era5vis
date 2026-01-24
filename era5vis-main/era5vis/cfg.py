@@ -30,13 +30,13 @@ html_template = Path(pkgdir) / "data" / "template.html"
 # global reference to the currently active ERA5 data file
 datafile: Path | None = None
 # example ERA5 datasets shipped with the package
-example_datafile = Path(pkgdir) / "data" / "era5_example_dataset.nc"
+example_datafile = Path(pkgdir) / "data" / "era5_example_dataset_1.nc"
 # default path where downloaded ERA5 data are stored
 downloaded_datafile = Path.cwd() / "era5_download.nc"
 # plot type specific example datasets
-scalar_wind_datafile = Path(pkgdir) / "data" / "era5_example_dataset.nc"
-skewT_datafile = Path(pkgdir) / "data" / "era5_example_1.nc"
-vert_cross_datafile = Path(pkgdir) / "data" / "era5_example_1.nc"
+scalar_wind_datafile = Path(pkgdir) / "data" / "era5_example_dataset_1.nc"
+skewT_datafile = Path(pkgdir) / "data" / "era5_example_dataset_2.nc"
+vert_cross_datafile = Path(pkgdir) / "data" / "era5_example_dataset_2.nc"
 
 def set_datafile(path: Path):
     """
