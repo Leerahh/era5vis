@@ -63,6 +63,11 @@ To use the provided example configuration file:
 
 era5vis_analysis_plots config/config.yaml
 
+This generates the default plot type: scalar_ wind. To use the configuration file for the other two plot types:
+
+era5vis_analysis_plots config/config.yaml --pl skewT
+era5vis_analysis_plots config/config.yaml -- pl vert_cross
+
 
 ## Example Usage
 
