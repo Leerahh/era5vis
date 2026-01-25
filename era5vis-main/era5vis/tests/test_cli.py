@@ -33,7 +33,7 @@ def test_help(capsys, args):
 
 
 @pytest.mark.parametrize("args", [
-    ["-v"],
+    ["--v"],
     ["--version"],
 ])
 def test_version(capsys, args):
@@ -105,7 +105,7 @@ def test_html_print_with_config(capsys, tmp_path, retrieve_param_level_time_wind
 def test_error(capsys, args, incomplete_test_cases):
     bad_args = incomplete_test_cases[args]
 
-    if bad_args in (["-p", "z", "--no-browser"], ["--lvl", "925", "--no-browser"]):
+    if bad_args in (["-p", "z", "--no-browser"], ["--lvl", "900", "--no-browser"]):
         with pytest.raises(SystemExit) as exc:
             analysis_plots(bad_args)
         assert exc.value.code == 2  # argparse error exit code
