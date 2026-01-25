@@ -1,7 +1,7 @@
 ## What task was assigned to you when you started?
 At the start of the project, I was responsible for:
 - adding wind barbs to the geopotential height plot
-- adding a Skew-T diagram as a second plotting option.
+- adding a Skew-T diagram as a second plotting option
 
 At that point, responsibilities for the guided exercise and the joint functionality had not yet been defined.
 
