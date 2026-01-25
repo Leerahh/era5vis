@@ -114,7 +114,7 @@ def _parse_args(args):
     )
     # version information
     parser.add_argument(
-        "-v", "--version",
+        "--v", "--version",
         action="version",
         version=(
             f"era5vis_analysis_plots: {era5vis.__version__}\n"
@@ -125,7 +125,7 @@ def _parse_args(args):
     
     # scalar variable
     parser.add_argument(
-        "-p", "--parameter",
+        "--p", "--parameter",
         dest="parameter",
         metavar="PARAM",
         help="ERA5 variable to plot (mandatory)"
