@@ -1,10 +1,12 @@
-'''
+"""
 Tests for the run_analysis_plots function in era5vis.analysis_plots.
 
 Author: Leah Herrfurth
 Updated by Lina Brückner, January 2026:
-    - Adding era5vis.core.write_scalar_with_wind_html and era5vis.core.write_skewT instead of era5vis.core.write_html
-'''
+    - Added era5vis.core.write_scalar_with_wind_html and era5vis.core.write_skewT instead of era5vis.core.write_html
+    - Added def test_run_analysis_plots_conflicting_data_source_options
+"""
+
 from unittest.mock import patch
 import pytest
 from era5vis.analysis_plots import run_analysis_plots
@@ -19,12 +21,12 @@ def tmp_nc_file(tmp_path):
     f.touch()
     return f
 
-def test_run_modellevel_sets_cfg_datafile(tmp_nc_file):
+def test_run_analysis_plots_sets_cfg_datafile_and_returns_html(tmp_nc_file):
     """
-    Test that run_analysis_plots correctly sets cfg.datafile and returns HTML output.
+    Set cfg.datafile and return generated HTML path.
     """
 
-     # Simulate the HTML output file that would normally be generated
+    # simulate the HTML output file that would normally be generated
     fake_html = tmp_nc_file.parent / "index.html"
     fake_html.touch()  # create an empty file
 
@@ -42,16 +44,28 @@ def test_run_modellevel_sets_cfg_datafile(tmp_nc_file):
             no_browser=True
         )
 
-        # Verify that cfg.datafile points to our temporary NetCDF file
+        # verify that cfg.datafile points to our temporary NetCDF file
         assert cfg.datafile == tmp_nc_file
 
-         # Verify that the returned HTML file exists
+        # verify that the returned HTML file exists
         assert html_path.exists()
+
+
+def test_run_analysis_plots_conflicting_data_source_options(tmp_nc_file):
+    """Raise ValueError when download_data and datafile are both specified."""
+    with pytest.raises(ValueError, match="Cannot specify both"):
+        run_analysis_plots(
+            parameter="t",
+            level=850,
+            download_data=True,
+            datafile=tmp_nc_file,
+        )
+
 
 def test_run_analysis_plots_raises_on_missing_parameter():
     """Test that missing parameter raises ValueError."""
     with pytest.raises(ValueError, match="For scalar_wind, 'parameter' and 'level' are required."):
-        run_analysis_plots(parameter=None, level=850)
+        run_analysis_plots(plot_type="scalar_wind", parameter=None, level=850)
 
 
 def test_run_analysis_plots_raises_on_missing_level():
@@ -99,4 +113,3 @@ def test_run_analysis_plots_vert_cross_missing_coords():
             lat0=45,
             lon0=0,
         )
-
