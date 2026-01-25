@@ -9,7 +9,7 @@ datasets. It provides functionality to:
 - extract horizontal cross sections at a given pressure level and time
 
 Edits:
- Leah Herrfurth, December 2025
+Leah Herrfurth, December 2025:
     - Added check_file_availability
     
 """
