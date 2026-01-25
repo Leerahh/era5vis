@@ -8,6 +8,7 @@ At that point, responsibilities for the guided exercise and the joint functional
 ## What changed during the implementation, that is, what is the outcome of the project?
 I was able to implement my main ideas—the two new functionalities for the project—relatively quickly. However, my main focus then shifted to integrating these functionalities into the overall package structure. This required extensive modifications across almost all modules of the package, as well as updates to the corresponding tests, and therefore took the majority of my time.
 In the final stage, I focused on thoroughly testing all command-line input options. In addition, I updated the documentation for each module and function, adapted the README.md file and checked for PEP8 style.
+And in a very last and spontaneous step, I implemented one common example datafile, with which all three plot types work.
 
 ## What was the biggest challenge you faced in the implementation?
 At the beginning, I encountered difficulties becoming familiar with GitHub, as this was my first time working with the platform. I was not able to set up GitHub Desktop in a timely manner and therefore decided to work locally on my computer, manually reuploading my changes to the package. Later on, I became more comfortable with GitHub and realized that this approach was inefficient, as repeatedly redownloading and reinstalling the package became obviously annoying.
