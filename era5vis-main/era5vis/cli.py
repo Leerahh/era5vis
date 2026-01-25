@@ -125,7 +125,7 @@ def _parse_args(args):
     
     # scalar variable
     parser.add_argument(
-        "--p", "--parameter",
+        "-p", "--parameter",
         dest="parameter",
         metavar="PARAM",
         help="ERA5 variable to plot (mandatory)"
