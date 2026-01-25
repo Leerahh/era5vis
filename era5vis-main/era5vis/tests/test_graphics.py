@@ -2,9 +2,9 @@
 Test functions for graphics.py
 
 Updated by Lina Brückner, January 2026:
-    - Testing plot_scalar_with_wind
-    - Testing extract_skewT_profile
-    - Testing plot_skewT using extracted profiles
+    - Updated plot_scalar_with_wind
+    - Added extract_skewT_profile
+    - Added plot_skewT using extracted profiles
     - Updated to single datafile usage
 """
 
@@ -59,7 +59,7 @@ def test_plot_scalar_with_wind_saving(tmp_path, retrieve_param_level_from_ds):
 
 def test_extract_and_plot_skewT(tmp_path):
     """
-    Test Skew-T profile extraction AND plotting.
+    Test Skew-T profile extraction and plotting.
     """
 
     # get a valid lat/lon/time from example dataset
@@ -103,13 +103,11 @@ def test_extract_and_plot_skewT(tmp_path):
     assert fpath.suffix == ".png"
 
     plt.close(fig)
-    assert fpath.suffix == '.png'
 
-    plt.close(fig)
 
 def test_extract_and_plot_vert_cross_section(tmp_path):
     """
-    Test vertical cross section extraction AND plotting.
+    Test vertical cross section extraction and plotting.
     """
 
     # use example scalar_wind dataset (has pressure levels + z, u, v)

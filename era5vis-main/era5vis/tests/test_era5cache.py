@@ -6,9 +6,9 @@ Author: Leah Herrfurth
 """
 
 import pytest
-from pathlib import Path
 from unittest.mock import patch
 from era5vis.data_access.era5_cache import Era5Cache, request_hash
+
 
 @pytest.fixture
 def tmp_cache_dir(tmp_path):
@@ -16,6 +16,7 @@ def tmp_cache_dir(tmp_path):
     Provide a temporary directory to be used as the ERA5 cache.
     """
     return tmp_path
+
 
 def test_cached_file_is_reused(tmp_cache_dir):
     """
@@ -51,6 +52,7 @@ def test_cached_file_is_reused(tmp_cache_dir):
         assert result.exists()
          # Download must not be triggered when cache is present
         mock_dl.assert_not_called()
+
 
 def test_download_called_when_cache_missing(tmp_cache_dir):
     """

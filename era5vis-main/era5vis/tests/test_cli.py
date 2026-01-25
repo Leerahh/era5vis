@@ -1,17 +1,19 @@
 """
-Test functions for cli 
-    Edited by Leah Herrfurth, December 2025
+Test functions for cli.py
+
+Edited by Leah Herrfurth, December 2025
     - Using parametrized pytest to test the CLI functions
     - Adding config testcases  
-    Edited by Lina Brückner, January 2026
+Edited by Lina Brückner, January 2026
     - Adding parameters u and v
 """
-import pytest
-import yaml
+
 import era5vis
 
-from era5vis.cli import analysis_plots
+import pytest
+import yaml
 
+from era5vis.cli import analysis_plots
 
 
 @pytest.mark.parametrize("args", [
@@ -31,7 +33,7 @@ def test_help(capsys, args):
 
 
 @pytest.mark.parametrize("args", [
-    ["-v"],
+    ["--v"],
     ["--version"],
 ])
 def test_version(capsys, args):
@@ -46,9 +48,9 @@ def test_version(capsys, args):
 
 
 @pytest.mark.parametrize("extra_args", [
-    ["--no-browser", "-t", "202510010000"], # explicit time with no browser
-    ["--ti", "0", "--no-browser", "-t", "202510010000"], # time index instead of explicit time
-    ["-t", "202510010000", "--no-browser", "--u1", "u", "--u2", "v"] # explicit time and wind parameters
+    ["--no-browser", "-t", "202510010000"],  # explicit time with no browser
+    ["--ti", "0", "--no-browser", "-t", "202510010000"],  # time index instead of explicit time
+    ["-t", "202510010000", "--no-browser", "--u1", "u", "--u2", "v"]  # explicit time and wind parameters
 ])
 def test_print_html(capsys, extra_args, retrieve_param_level_time_wind_from_ds):
     """Test that correctly formatted CLI calls generate HTML output."""
@@ -70,7 +72,7 @@ def test_html_print_with_config(capsys, tmp_path, retrieve_param_level_time_wind
     # retrieve valid parameter, level, time and wind components
     param, level, time, u, v = retrieve_param_level_time_wind_from_ds
 
-    # create temporary YAMl config file
+    # create temporary YAML config file
     config_file = tmp_path / "config.yaml"
     
     # mimic CLI call
@@ -103,7 +105,7 @@ def test_html_print_with_config(capsys, tmp_path, retrieve_param_level_time_wind
 def test_error(capsys, args, incomplete_test_cases):
     bad_args = incomplete_test_cases[args]
 
-    if bad_args in (["-p", "z", "--no-browser"], ["--lvl", "925", "--no-browser"]):
+    if bad_args in (["-p", "z", "--no-browser"], ["--lvl", "900", "--no-browser"]):
         with pytest.raises(SystemExit) as exc:
             analysis_plots(bad_args)
         assert exc.value.code == 2  # argparse error exit code
@@ -112,15 +114,20 @@ def test_error(capsys, args, incomplete_test_cases):
             analysis_plots(bad_args)
 
 
-
 @pytest.mark.parametrize(
     "config_index, cli_option",
     [
-        (0, "-p"), # missing parameter in config
-        (1, "--lvl"), # missing level in config
+        (0, "-p"),  # missing parameter in config
+        (1, "--lvl"),  # missing level in config
     ]
 )
-def test_cli_overrides_config(capsys, config_index, cli_option, temp_incomplete_config_files, retrieve_param_level_time_wind_from_ds):
+def test_cli_overrides_config(
+    capsys,
+    config_index,
+    cli_option,
+    temp_incomplete_config_files,
+    retrieve_param_level_time_wind_from_ds,
+):
     """Test that CLI arguments override YAML configuration values."""
     # retrieve valid parameter, level, time and wind components
     param, level, time, u, v = retrieve_param_level_time_wind_from_ds
@@ -131,7 +138,7 @@ def test_cli_overrides_config(capsys, config_index, cli_option, temp_incomplete_
     if cli_option == "-p":
         args = [
             str(config_file),
-            "-p", param, # override missing parameter
+            "-p", param,  # override missing parameter
             "--lvl", str(level),
             "--u1", "u",
             "--u2", "v",
@@ -141,7 +148,7 @@ def test_cli_overrides_config(capsys, config_index, cli_option, temp_incomplete_
     else:
         args = [
             str(config_file),
-            "--lvl", str(level), # override missing level
+            "--lvl", str(level),  # override missing level
             "-p", param,
             "--u1", "u",
             "--u2", "v",

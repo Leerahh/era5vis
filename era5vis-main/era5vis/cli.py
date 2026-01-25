@@ -7,6 +7,7 @@ The CLI supports:
 
 - scalar field plots with wind vectors
 - Skew-T diagrams at a selected location
+- vertical cross section plots
 - configuration via YAML files
 - command-line overrides of configuration options
 
@@ -26,7 +27,7 @@ Leah Herrfurth, December 2025
 Lina Brückner, January 2026
     - Added parser arguments plot type, directory, wind component and location arguments
     - Integrated new arguments into configuration merging logic
-    - Integrated fallback to example ERA5 datasets in ./data If downloading is disabled
+    - Integrated fallback to example ERA5 datasets in ./data if downloading is disabled
 
 Leah Herrfurth, January 2026
     - Added data download Elements
@@ -113,7 +114,7 @@ def _parse_args(args):
     )
     # version information
     parser.add_argument(
-        "-v", "--version",
+        "--v", "--version",
         action="version",
         version=(
             f"era5vis_analysis_plots: {era5vis.__version__}\n"
