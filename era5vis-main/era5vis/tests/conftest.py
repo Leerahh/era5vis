@@ -20,7 +20,7 @@ from era5vis import cfg
 
 @pytest.fixture(scope="session", autouse=True)
 def ensure_datafile():
-    # Set datafile if it hasn't been set yet
+    # set datafile if it hasn't been set yet
     if cfg.example_datafile.exists():
         cfg.set_datafile(cfg.example_datafile)
     else:
@@ -63,8 +63,8 @@ def retrieve_param_level_time_wind_from_ds():
         param = [v for v in ds.variables if ("pressure_level" in ds[v].dims) and ("longitude" in ds[v].dims)][0]
         level = int(ds.pressure_level.values[0])
         time = ds.valid_time.values[0].astype("datetime64[ms]").astype(datetime).strftime("%Y%m%d%H%M")
-        u = ds.u
-        v = ds.v
+        u = "u"
+        v = "v"
     
     return param, level, time, u, v
 
