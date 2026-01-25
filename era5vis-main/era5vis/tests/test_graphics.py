@@ -5,6 +5,7 @@ Updated by Lina Brückner, January 2026:
     - Testing plot_scalar_with_wind
     - Testing extract_skewT_profile
     - Testing plot_skewT using extracted profiles
+    - Updated to single datafile usage
 """
 
 import matplotlib.pyplot as plt
@@ -19,7 +20,7 @@ def test_plot_scalar_with_wind_labels(retrieve_param_level_from_ds):
     param, level = retrieve_param_level_from_ds
     u, v = "u", "v"
 
-    with xr.open_dataset(cfg.scalar_wind_datafile) as ds:
+    with xr.open_dataset(cfg.example_datafile) as ds:
         da = ds[param].sel(pressure_level=level).isel(valid_time=0)
         u_da = ds[u].sel(pressure_level=level).isel(valid_time=0)
         v_da = ds[v].sel(pressure_level=level).isel(valid_time=0)
@@ -40,7 +41,7 @@ def test_plot_scalar_with_wind_saving(tmp_path, retrieve_param_level_from_ds):
     param, level = retrieve_param_level_from_ds
     u, v = "u", "v"
 
-    with xr.open_dataset(cfg.scalar_wind_datafile) as ds:
+    with xr.open_dataset(cfg.example_datafile) as ds:
         da = ds[param].sel(pressure_level=level).isel(valid_time=0)
         u_da = ds[u].sel(pressure_level=level).isel(valid_time=0)
         v_da = ds[v].sel(pressure_level=level).isel(valid_time=0)
@@ -62,17 +63,17 @@ def test_extract_and_plot_skewT(tmp_path):
     """
 
     # get a valid lat/lon/time from example dataset
-    with xr.open_dataset(cfg.skewT_datafile) as ds:
+    with xr.open_dataset(cfg.example_datafile) as ds:
         lat = float(ds.latitude.values[0])
         lon = float(ds.longitude.values[0])
         time = str(ds.valid_time.values[0])
 
-    # --- extraction ---
+    # extraction
     p, T, Td, u, v = graphics.extract_skewT_profile(
         lat=lat,
         lon=lon,
         time=time,
-        datafile=str(cfg.skewT_datafile),
+        datafile=str(cfg.example_datafile),
     )
 
     # basic sanity checks on extracted profiles
@@ -82,7 +83,7 @@ def test_extract_and_plot_skewT(tmp_path):
     assert u.size == p.size
     assert v.size == p.size
 
-    # --- plotting ---
+    # plotting
     fpath = tmp_path / "skewT_test.png"
 
     fig = graphics.plot_skewT(
@@ -112,7 +113,7 @@ def test_extract_and_plot_vert_cross_section(tmp_path):
     """
 
     # use example scalar_wind dataset (has pressure levels + z, u, v)
-    datafile = str(cfg.scalar_wind_datafile)
+    datafile = str(cfg.example_datafile)
 
     # choose a simple transect
     start = (40.0, 0.0)
