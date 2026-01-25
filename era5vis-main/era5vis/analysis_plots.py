@@ -12,8 +12,8 @@ command-line interface and programmatic usage. It contains:
 Author: Leah Herrfurth
 Edited by Lina Brückner, January 2026:
     - Added support for multiple plot types (scalar_wind, skewT)
-    - added logging for better traceability
-    - added option for own datafile usage
+    - Added logging for better traceability
+    - Added option for own datafile usage
 """
 
 import webbrowser
@@ -53,7 +53,7 @@ def run_analysis_plots(
 
     - a horizontal scalar field plot with wind vectors
     - a Skew-T diagram for a specified location
-    - a Vertical cross section plot
+    - a vertical cross section plot
 
     Internally, the function handles ERA5 data retrieval via a cache,
     delegates plotting to the ``core`` and ``graphics`` modules, and
@@ -139,15 +139,7 @@ def run_analysis_plots(
     # select datafile
     if use_example_data:
         logger.info("Using packaged example datasets for plotting.")
-        # Use packaged example datasets
-        if plot_type == "scalar_wind":
-            datafile = cfg.scalar_wind_datafile
-        elif plot_type == "skewT":
-            datafile = cfg.skewT_datafile
-        elif plot_type == "vert_cross":
-            datafile = cfg.vert_cross_datafile
-        else:
-            datafile = cfg.scalar_wind_datafile
+        datafile = cfg.example_datafile
 
     else:
         # download / cache real ERA5 data
