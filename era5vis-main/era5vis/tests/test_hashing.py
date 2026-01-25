@@ -5,6 +5,7 @@ Author: Leah Herrfurth
 
 from era5vis.utils.hashing import request_hash
 
+
 def test_request_hash_is_deterministic():
     """
     Verify that request_hash produces the same hash for dictionaries
