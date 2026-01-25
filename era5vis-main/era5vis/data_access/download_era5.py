@@ -18,6 +18,7 @@ https://cds.climate.copernicus.eu/
 
 Author: Leah Herrfurth
 """
+
 import cdsapi
 
 
@@ -53,5 +54,3 @@ def download_era5_data(request, target='era5_download.nc'):
     target = target
     # submit the request and download the data to the target file
     client.retrieve(dataset, request, target)
-
-

@@ -10,11 +10,10 @@ between:
 - HTML templating and file output (``cfg``)
 
 The functions in this module do not perform any data downloading
-themselves and require an explicit ERA5 data file to be provided.
+themselves.
 
 Updated by Lina Brückner, January 2026:
     - Added HTML writers for scalar-with-wind maps and Skew-T diagrams
-    - Removed usage of example data files (explicit datafile required)
 """
 
 from pathlib import Path
@@ -22,8 +21,6 @@ from tempfile import mkdtemp
 import shutil
 
 from era5vis import cfg, graphics, era5
-from era5vis.data_access import download_era5
-
 
 def mkdir(path, reset=False):
     """
@@ -43,7 +40,7 @@ def mkdir(path, reset=False):
     -------
     pathlib.Path
         Path to the created (or existing) directory.
-"""
+    """
 
     # if requested, remove the directory and all its components
     if reset and Path.is_dir(path):
@@ -58,7 +55,15 @@ def mkdir(path, reset=False):
 
 
 def write_scalar_with_wind_html(
-    scalar, u, v, level, time=None, time_index=None, directory=None, step=9, datafile=None
+    scalar,
+    u,
+    v,
+    level,
+    time=None,
+    time_index=None,
+    directory=None,
+    step=9,
+    datafile=None
 ):
     """
     Generate an HTML page containing a scalar field map with wind vectors.
@@ -106,10 +111,10 @@ def write_scalar_with_wind_html(
     if time is None:
         time = time_index
 
-    # explicit datafile is required (example files are no longer supported)
+    # explicit datafile is required
     if datafile is None:
         raise ValueError(
-        "datafile must be provided explicitly; example files are no longer used"
+            "datafile must be provided explicitly"
         )
 
 
@@ -123,41 +128,46 @@ def write_scalar_with_wind_html(
         directory = mkdtemp()
     mkdir(directory)
 
-    print('Extracting data')
+    print("Extracting data")
 
     # extract horizontal cross sections for scalar and wind components
     da = era5.horiz_cross_section(scalar, level, time, datafile)
     u_da = era5.horiz_cross_section(u, level, time, datafile)
     v_da = era5.horiz_cross_section(v, level, time, datafile)
 
-    print('Plotting data')
+    print("Plotting data")
 
     # create a filename-safe timestamp
-    time_safe = str(time).replace(':', '-').replace(' ', '_')
-    png = Path(directory) / f'scalar_wind_{scalar}_{level}_{time_safe}.png'
+    time_safe = str(time).replace(":", "-").replace(" ", "_")
+    png = Path(directory) / f"scalar_wind_{scalar}_{level}_{time_safe}.png"
 
     # generate PNG plot
     graphics.plot_scalar_with_wind(
-        da, u_da, v_da, savepath=png, step=step
+        da,
+        u_da,
+        v_da,
+        savepath=png,
+        step=step,
     )
 
     # create HTML output using the template
-    outpath = Path(directory) / 'index.html'
+    outpath = Path(directory) / "index.html"
     with open(cfg.html_template) as infile:
         template = infile.read()
 
     html = (
         template
-        .replace('[PLOTTYPE]', 'Scalar field with wind')
-        .replace('[PLOTVAR]', scalar)
-        .replace('[IMGTYPE]', png.name)
+        .replace("[PLOTTYPE]", "Scalar field with wind")
+        .replace("[PLOTVAR]", scalar)
+        .replace("[IMGTYPE]", png.name)
     )
 
-    with open(outpath, 'w') as infile:
+    with open(outpath, "w") as infile:
         infile.write(html)
 
     return outpath
 
+    
 def write_skewT_html(
     lat, lon, time, datafile=None, directory=None, **kwargs
 ):
@@ -197,7 +207,7 @@ def write_skewT_html(
     # explicit datafile is required
     if datafile is None:
         raise ValueError(
-        "datafile must be provided explicitly; example files are no longer used"
+            "datafile must be provided explicitly; example files are no longer used"
         )
 
     # create temporary output directory if necessary
@@ -205,11 +215,11 @@ def write_skewT_html(
         directory = mkdtemp()
     mkdir(directory)
 
-    print('Plotting Skew-T')
+    print("Plotting Skew-T")
 
     # create a filename-safe timestamp
-    time_safe = str(time).replace(':', '-').replace(' ', '_')
-    png = Path(directory) / f'SkewT_{lat:.2f}_{lon:.2f}_{time_safe}.png'
+    time_safe = str(time).replace(":", "-").replace(" ", "_")
+    png = Path(directory) / f"SkewT_{lat:.2f}_{lon:.2f}_{time_safe}.png"
 
     # extract vertical profile data
     p, T, Td, u, v = graphics.extract_skewT_profile(
@@ -229,24 +239,25 @@ def write_skewT_html(
     )
 
     # generate HTML output using the template
-    outpath = Path(directory) / 'index.html'
-    with open(cfg.html_template, 'r') as infile:
+    outpath = Path(directory) / "index.html"
+    with open(cfg.html_template, "r") as infile:
         lines = infile.readlines()
 
     out = []
     for txt in lines:
-        txt = txt.replace('[PLOTTYPE]', 'Skew-T diagram')
-        txt = txt.replace('[PLOTVAR]', f'{lat:.2f}°, {lon:.2f}° @ {time}')
-        txt = txt.replace('[IMGTYPE]', png.name)
+        txt = txt.replace("[PLOTTYPE]", "Skew-T diagram")
+        txt = txt.replace("[PLOTVAR]", f"{lat:.2f}°, {lon:.2f}° @ {time}")
+        txt = txt.replace("[IMGTYPE]", png.name)
         out.append(txt)
 
-    with open(outpath, 'w') as outfile:
+    with open(outpath, "w") as outfile:
         outfile.writelines(out)
 
     return outpath
 
+
 def write_vert_cross_html(
-    param, start, end, time, u='u', v='v', npoints=200, datafile=None, directory=None,
+    param, start, end, time, u="u", v="v", npoints=200, datafile=None, directory=None,
 ):
     """
     Generate an HTML page containing a vertical cross section plot.
@@ -254,7 +265,7 @@ def write_vert_cross_html(
 
     if datafile is None:
         raise ValueError(
-        "datafile must be provided explicitly; example files are no longer used"
+            "datafile must be provided explicitly; example files are no longer used"
         )
 
     era5.check_file_availability(datafile)

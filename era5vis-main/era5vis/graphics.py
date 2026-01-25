@@ -6,6 +6,7 @@ including:
 
 - Horizontal maps of scalar fields with overlaid wind vectors
 - Vertical atmospheric soundings using Skew-T diagrams with hodographs
+- Vertical cross sections
 
 The functions in this module assume that ERA5 data follow standard
 naming conventions (e.g. ``pressure_level``, ``valid_time``,
@@ -43,7 +44,7 @@ def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
     Parameters
     ----------
     da : xarray.DataArray
-        Scalar field to plot (e.g. geopotential or temperature).
+        Scalar field to plot (e.g. geopotential).
         Must contain ``latitude``, ``longitude``, ``pressure_level``,
         and ``valid_time`` coordinates.
     u : xarray.DataArray
@@ -70,21 +71,21 @@ def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
     # initiate figure
     fig = plt.figure(figsize=(8, 6))
     ax = plt.axes(projection=ccrs.PlateCarree())
-    ax.set_xlabel('Longitude')
-    ax.set_ylabel('Latitude')
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
 
     # extract time for title
-    time = da.valid_time.to_numpy().astype('datetime64[ms]').astype(datetime)
+    time = da.valid_time.to_numpy().astype("datetime64[ms]").astype(datetime)
     ax.set_title(
-        f'{da.long_name} and wind barbs at {da.pressure_level.to_numpy()} '
-        f'{da.pressure_level.units} ({time:%d %b %Y %H:%M})',
+        f"{da.long_name} and wind barbs at {da.pressure_level.to_numpy()} "
+        f"{da.pressure_level.units} ({time:%d %b %Y %H:%M})",
         fontsize=12
     )
 
     # plot scalar as filled contours
-    cf = ax.contourf(da.longitude, da.latitude, da, levels=20, cmap='viridis')
-    cbar = plt.colorbar(cf, ax=ax, orientation='vertical', pad=0.02)
-    cbar.set_label(f'({da.units})')
+    cf = ax.contourf(da.longitude, da.latitude, da, levels=20, cmap="viridis")
+    cbar = plt.colorbar(cf, ax=ax, orientation="vertical", pad=0.02)
+    cbar.set_label(f"({da.units})")
 
     # subsample wind
     pu = u[::step, ::step]
@@ -96,21 +97,21 @@ def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
         pu.latitude,
         pu,
         pv,
-        pivot='middle',
+        pivot="middle",
         transform=ccrs.PlateCarree()
     )
 
     # add coastlines and borders
-    ax.coastlines(color='green')
-    ax.add_feature(cfeature.BORDERS, linestyle=':')
+    ax.coastlines(color="green")
+    ax.add_feature(cfeature.BORDERS, linestyle=":")
     
     # add gridlines with labels
     gl = ax.gridlines(
         draw_labels=True,
         linewidth=0.5,
-        color='gray',
+        color="gray",
         alpha=0.7,
-        linestyle='--'
+        linestyle="--"
     )
     gl.top_labels = False
     gl.right_labels = False
@@ -119,12 +120,12 @@ def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
 
     # save figure
     if savepath is None:
-        time_safe = str(time).replace(':', '-').replace(' ', '_')
-        filename = f'scalar_wind_{da.name}_{da.pressure_level.to_numpy()}_{time_safe}.png'
-        fig.savefig(filename, bbox_inches='tight')
+        time_safe = str(time).replace(":", "-").replace(" ", "_")
+        filename = f"scalar_wind_{da.name}_{da.pressure_level.to_numpy()}_{time_safe}.png"
+        fig.savefig(filename, bbox_inches="tight")
         plt.close(fig)
     else:
-        fig.savefig(savepath, bbox_inches='tight')
+        fig.savefig(savepath, bbox_inches="tight")
         plt.close(fig)
 
     return fig
@@ -152,7 +153,6 @@ def extract_skewT_profile(lat, lon, time, datafile, variables=None):
         Path to the ERA5 NetCDF data file.
     variables : dict, optional
         Mapping of logical variable names to dataset variable names.
-        Defaults to ``{'T': 't', 'q': 'q', 'u': 'u', 'v': 'v'}``.
 
     Returns
     -------
@@ -169,41 +169,41 @@ def extract_skewT_profile(lat, lon, time, datafile, variables=None):
     # use default ERA5 variable names 
     if variables is None:
         variables = {
-            'T': 't',
-            'q': 'q',
-            'u': 'u',
-            'v': 'v',
+            "T": "t",
+            "q": "q",
+            "u": "u",
+            "v": "v",
         }
 
     # open ERA5 netcdf dataset
     with xr.open_dataset(datafile) as ds:
         # extract temperature profile
-        T_da = ds[variables['T']] \
-            .sel(latitude=lat, longitude=lon, method='nearest') \
-            .sel(valid_time=time, method='nearest')
+        T_da = ds[variables["T"]] \
+            .sel(latitude=lat, longitude=lon, method="nearest") \
+            .sel(valid_time=time, method="nearest")
 
         # extract specific humidity profile
-        q_da = ds[variables['q']] \
-            .sel(latitude=lat, longitude=lon, method='nearest') \
-            .sel(valid_time=time, method='nearest')
+        q_da = ds[variables["q"]] \
+            .sel(latitude=lat, longitude=lon, method="nearest") \
+            .sel(valid_time=time, method="nearest")
 
         # extract zonal wind component profile
-        u_da = ds[variables['u']] \
-            .sel(latitude=lat, longitude=lon, method='nearest') \
-            .sel(valid_time=time, method='nearest') \
+        u_da = ds[variables["u"]] \
+            .sel(latitude=lat, longitude=lon, method="nearest") \
+            .sel(valid_time=time, method="nearest") \
 
         # extract meridional wind component profile
-        v_da = ds[variables['v']] \
-            .sel(latitude=lat, longitude=lon, method='nearest') \
-            .sel(valid_time=time, method='nearest')
+        v_da = ds[variables["v"]] \
+            .sel(latitude=lat, longitude=lon, method="nearest") \
+            .sel(valid_time=time, method="nearest")
 
         # extract pressure levels
         p = T_da.pressure_level.values * units.hPa
 
         # convert units
         T = (T_da.values * units.kelvin).to(units.degC)
-        u = u_da.values * units('m/s')
-        v = v_da.values * units('m/s')
+        u = u_da.values * units("m/s")
+        v = v_da.values * units("m/s")
         # compute dewpoint from specific humidity and pressure
         Td = mpcalc.dewpoint_from_specific_humidity(p, q_da.values).to(units.degC)
 
@@ -222,9 +222,9 @@ def plot_skewT(p, T, Td, u, v, lat, lon, time, datafile=None, variables=None, sa
     """
     Plot a Skew-T log-p diagram with wind barbs and a hodograph.
 
-    This function assumes that pressure, temperature, dewpoint,
-    and wind profiles have already been extracted and converted
-    to physical units.
+    This function assumes that vertical profiles of pressure,
+    temperature, dewpoint, and wind components have already
+    been extracted and converted to physical units.
 
     Parameters
     ----------
@@ -258,8 +258,8 @@ def plot_skewT(p, T, Td, u, v, lat, lon, time, datafile=None, variables=None, sa
     skew = SkewT(fig, rotation=45, rect=(0.1, 0.1, 0.55, 0.85))
 
     # plot temperature and dewpoint
-    skew.plot(p, T, 'r', label='Temperature')
-    skew.plot(p, Td, 'g', label='Dewpoint')
+    skew.plot(p, T, "r", label="Temperature")
+    skew.plot(p, Td, "g", label="Dewpoint")
 
     # plot wind barbs
     skew.plot_barbs(p, u, v)
@@ -267,8 +267,8 @@ def plot_skewT(p, T, Td, u, v, lat, lon, time, datafile=None, variables=None, sa
     # set axes limits
     skew.ax.set_xlim(-30, 40)
     skew.ax.set_ylim(1000, 100)
-    skew.ax.set_xlabel('Temperature [°C]')
-    skew.ax.set_ylabel('Pressure [hPa]')
+    skew.ax.set_xlabel("Temperature [°C]")
+    skew.ax.set_ylabel("Pressure [hPa]")
 
     # set reference lines in skew T
     skew.plot_dry_adiabats()
@@ -280,18 +280,18 @@ def plot_skewT(p, T, Td, u, v, lat, lon, time, datafile=None, variables=None, sa
     h = Hodograph(ax_hod, component_range=50.)
     h.add_grid(increment=10)
     h.plot(u, v)
-    ax_hod.set_xlabel('Wind speed [m s$^{-1}$]')
-    ax_hod.set_ylabel('Wind speed [m s$^{-1}$]')
+    ax_hod.set_xlabel("Wind speed [m s$^{-1}$]")
+    ax_hod.set_ylabel("Wind speed [m s$^{-1}$]")
 
     # set title
     skew.ax.set_title(
-        f'Skew-T at {lat:.2f}°N, {lon:.2f}°E ({time})',
+        f"Skew-T at {lat:.2f}°N, {lon:.2f}°E ({time})",
         fontsize=12
     )
 
     # save figure
     if savepath is not None:
-        fig.savefig(savepath, bbox_inches='tight')
+        fig.savefig(savepath, bbox_inches="tight")
         plt.close(fig)
 
     return fig

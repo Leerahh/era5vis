@@ -4,9 +4,10 @@ Fixtures used in ERA5vis tests.
 Edited by Leah Herrfurth, December 2025:
     - Added fixtures to create incomplete config files and combine CLI/config test cases
 Edited by Lina Brückner, January 2026:
-    - adding def datafile()
-    - updating def retrieve_param_level_time_from_ds()
-    - adding def retrieve_param_level_time_wind_from_ds()
+    - Added def datafile()
+    - Updated def retrieve_param_level_time_from_ds()
+    - Added def retrieve_param_level_time_wind_from_ds()
+    - Updated to single datafile usage
 """
 
 from datetime import datetime
@@ -29,14 +30,14 @@ def ensure_datafile():
 @pytest.fixture
 def datafile():
     # return the scalar_wind dataset for testing
-    return str(cfg.scalar_wind_datafile)  # path must be str for xarray
+    return str(cfg.example_datafile)  # path must be str for xarray
 
 @pytest.fixture
 def retrieve_param_level_from_ds():
 
     # retrieve variable name and level from the dataset to make sure 
     # that we don't call the function with bad arguments
-    with xr.open_dataset(cfg.scalar_wind_datafile) as ds:
+    with xr.open_dataset(cfg.example_datafile) as ds:
         param = [v for v in ds.variables if ("pressure_level" in ds[v].dims) and ("longitude" in ds[v].dims)][0]
         level = int(ds.pressure_level.values[0])
     
@@ -48,7 +49,7 @@ def retrieve_param_level_time_from_ds():
 
     # retrieve variable name, level, and time from the dataset to make sure 
     # that we don't call the function with bad arguments
-    with xr.open_dataset(cfg.scalar_wind_datafile) as ds:
+    with xr.open_dataset(cfg.example_datafile) as ds:
         param = [v for v in ds.variables if ("pressure_level" in ds[v].dims) and ("longitude" in ds[v].dims)][0]
         level = int(ds.pressure_level.values[0])
         time = ds.valid_time.values[0].astype("datetime64[ms]").astype(datetime).strftime("%Y%m%d%H%M")
@@ -58,7 +59,7 @@ def retrieve_param_level_time_from_ds():
 @pytest.fixture
 def retrieve_param_level_time_wind_from_ds():
 
-    with xr.open_dataset(cfg.scalar_wind_datafile) as ds:
+    with xr.open_dataset(cfg.example_datafile) as ds:
         param = [v for v in ds.variables if ("pressure_level" in ds[v].dims) and ("longitude" in ds[v].dims)][0]
         level = int(ds.pressure_level.values[0])
         time = ds.valid_time.values[0].astype("datetime64[ms]").astype(datetime).strftime("%Y%m%d%H%M")

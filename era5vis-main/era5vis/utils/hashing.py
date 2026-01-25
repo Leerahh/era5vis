@@ -28,5 +28,6 @@ def request_hash(request: dict) -> str:
     >>> request_hash(request)
     'a1b2c3d4e5f6'
     """
+    
     payload = json.dumps(request, sort_keys=True).encode()
     return hashlib.sha256(payload).hexdigest()[:12]

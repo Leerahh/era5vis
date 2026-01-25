@@ -3,6 +3,7 @@
     Updated by Lina Brückner, January 2026:
         - def test_write_scalar_with_wind_html(tmp_path)
         - def test_write_skewT_html(tmp_path)
+        - Updated to single datafile usage
 """
 
 
@@ -24,7 +25,7 @@ def test_write_scalar_with_wind_html(tmp_path):
     Check that HTML file is created and the directory contains a PNG file.
     '''
     # open scalar_wind dataset to get a valid variable, level and time
-    with xr.open_dataset(cfg.scalar_wind_datafile) as ds:
+    with xr.open_dataset(cfg.example_datafile) as ds:
         # pick the first variable with a pressure_level dimension
         param = [v for v in ds.variables if 'pressure_level' in ds[v].dims and 'longitude' in ds[v].dims][0]
         level = int(ds.pressure_level.values[0])
@@ -40,7 +41,7 @@ def test_write_scalar_with_wind_html(tmp_path):
         level=level,
         time=time,
         directory=tmp_path,
-        datafile=str(cfg.scalar_wind_datafile),
+        datafile=str(cfg.example_datafile),
     )
 
     # check that HTML file exists
@@ -55,7 +56,7 @@ def test_write_skewT_html(tmp_path):
     Check that HTML file is created and the directory contains a PNG file.
     '''
     # open the Skew-T dataset to get valid coordinates and time
-    with xr.open_dataset(cfg.skewT_datafile) as ds:
+    with xr.open_dataset(cfg.example_datafile) as ds:
         # pick the first valid latitude, longitude and time
         lat = float(ds.latitude.values[0])
         lon = float(ds.longitude.values[0])
@@ -67,7 +68,7 @@ def test_write_skewT_html(tmp_path):
         lon=lon,
         time=time,
         directory=tmp_path,
-        datafile=str(cfg.skewT_datafile)
+        datafile=str(cfg.example_datafile)
     )
 
 
@@ -76,7 +77,7 @@ def test_write_vert_cross_html(tmp_path):
     Check that vertical cross-section HTML and PNG are created.
     """
 
-    with xr.open_dataset(cfg.vert_cross_datafile) as ds:
+    with xr.open_dataset(cfg.example_datafile) as ds:
         time = str(ds.valid_time.values[0])
 
     start = (40.0, 0.0)   # (lat, lon)
@@ -89,7 +90,7 @@ def test_write_vert_cross_html(tmp_path):
         time=time,
         npoints=50,
         directory=tmp_path,
-        datafile=str(cfg.vert_cross_datafile),
+        datafile=str(cfg.example_datafile),
     )
 
     # HTML exists
