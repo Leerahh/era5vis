@@ -1,26 +1,26 @@
 # Example configuration file for era5vis analysis plots
 # Author: Leah Herrfurth
-# Edited by: Lina Brückner (Adding scalar_wind and skewT)
+# Edited by: Lina Brückner (adding plot types and skewT specifications)
 
 
 
-plot_type: scalar_wind    # generate a scalar field with wind vectors
+plot_type: scalar_wind  # generate a scalar field with wind vectors
 
-# Common settings, will be overitten by specific plot types if defined there
+# common settings, will be overitten by specific plot types if defined there
 time: "2025-10-02T00:00"  # time of the data to visualize
-directory: "./"         # directory to save outputs
-no_browser: true    # do not open the browser automatically
+directory: "./"  # directory to save outputs
+no_browser: true  # do not open the browser automatically
 download_data: false  # do not download data 
 
 scalar_wind:
-  parameter: z            # geopotential height
-  level: 500              # pressure level in hPa
-  u: u                    # zonal wind component
-  v: v                    # meridional wind component
+  parameter: z  # geopotential height
+  level: 500  # pressure level in hPa
+  u: u  # zonal wind component
+  v: v  # meridional wind component
 
 skewT:
-  lat: 48.21              # Latitude for Skew-T diagram
-  lon: 16.37              # Longitude for Skew-T diagram
+  lat: 48.21  # latitude for Skew-T diagram
+  lon: 16.37  # longitude for Skew-T diagram
 
 vert_cross:
   parameter: t
