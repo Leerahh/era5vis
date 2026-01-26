@@ -20,6 +20,7 @@ The package is inspired by the example projects scispack and climvis by Fabien M
 The following Python packages are required:
 
 * numpy
+* pandas
 * scipy
 * xarray
 * netCDF4
