@@ -148,29 +148,31 @@ To analyse an already downloaded datafile:
 era5vis_analysis_plots config/config.yaml --datafile path/to/file
 ~~~
 
-## Required Parameters (depending on specific plottype)
+## Arguments
+| Parameter / Argument              | Default | Description / Notes                                                       |
+| --------------------------------- | ------- | ------------------------------------------------------------------------- |
+| `config`                          | –       | Path to configuration file (positional argument)                          |
+| `--plot_type` / `--pl`            | –       | Type of plot. Options: `vert_cross`, `scalar_wind`, `skewT`               |
+| `--parameter` / `-p`              | –       | ERA5 variable to plot (mandatory). Examples: `t`, `u`, `v`, `q`           |
+| `--level` / `--lvl`               | None    | Pressure level in hPa (mandatory for specific-level plots)                |
+| `--lat0`                          | –       | Start latitude for vertical cross-section (`vert_cross` only)             |
+| `--lon0`                          | –       | Start longitude for vertical cross-section                                |
+| `--lat1`                          | –       | End latitude for vertical cross-section                                   |
+| `--lon1`                          | –       | End longitude for vertical cross-section                                  |
+| `--lat` / `--latitude`            | –       | Latitude of single-point plots (`skewT`, `scalar_wind`)                   |
+| `--lon` / `--longitude`           | –       | Longitude of single-point plots                                           |
+| `--time` / `-t`                   | –       | Time to plot, format `"YYYY-MM-DDTHH:MM"` or `"YYYY-MM-DD HH:MM"`         |
+| `--time_index` / `--ti`           | `0`     | Index within dataset if multiple times exist (ignored if `--time` is set) |
+| `--u1` / `--horizontal_wind`      | `"u"`   | First horizontal wind component (zonal, east-west)                        |
+| `--u2` / `--meridional_wind`      | `"v"`   | Second horizontal wind component (meridional, north-south)                |
+| `--npoints`                       | `200`   | Number of interpolation points along vertical cross-section line          |
+| `--directory` / `--directory DIR` | `"."`   | Directory to save HTML output                                             |
+| `--no_browser` / `--no-browser`   | `False` | If set, do not open the plot automatically; just print the HTML file path |
+| `--download_data` / `--dd`        | `False` | Download ERA5 data from CDS automatically if missing                      |
+| `--datafile` / `--df`             | –       | Path to ERA5 data file (overrides config file setting)                    |
+| `-h` / `--help`                   | –       | Show help message                                                         |
+| `--v` / `--version`               | –       | Show program version number                                               |
 
-| Parameter          | Description                                                                                                         |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `--plot_type`      | Type of plot. Options: `vert_cross`, `scalar_wind`, `skewT`                                                                        |
-| `--parameter`      | Atmospheric variable. Examples: `t` (temperature), `u` (zonal wind), `v` (meridional wind), `q` (specific humidity) |
-| `--lat0`, `--lon0` | Start coordinates for vertical cross-section                                                                        |
-| `--lat1`, `--lon1` | End coordinates for vertical cross-section                                                                          |
-| `--time`           | Time in ISO format: `"YYYY-MM-DDTHH:MM"` or `"YYYY-MM-DD HH:MM"`                                                    |
-
-
-## Optional Parameters
-
-| Parameter         | Default | Description                                   |
-| ----------------- | ------- | --------------------------------------------- |
-| `--level`         | None    | Pressure level (for specific-level plots)     |
-| `--u1`            | `"u"`   | First vector component (zonal wind)           |
-| `--u2`            | `"v"`   | Second vector component (meridional wind)     |
-| `--npoints`       | `200`   | Number of points along the cross-section line |
-| `--time_index`    | `0`     | Index if multiple times exist in data file    |
-| `--directory`     | `"."`   | Output directory                              |
-| `--no_browser`    | `False` | Do not open plot automatically                |
-| `--download_data` | `False` | Download missing ERA5 data automatically      |
 
 
 ## Programmatic Usage
