@@ -21,7 +21,6 @@ The following Python packages are required:
 
 * numpy
 * pandas
-* scipy
 * xarray
 * netCDF4
 * matplotlib
