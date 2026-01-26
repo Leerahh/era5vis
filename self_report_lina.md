@@ -16,6 +16,8 @@ I was able to implement the two new plotting functionalities relatively quickly.
 
 I also implemented several changes in the configuration file and had to experiment for a while until I found a good solution regarding what should be covered in the configuration file and what should not.
 
+I initially considered extending the first plot to support scalar fields other than geopotential. However, I later decided against this approach, as I did not manage to implement the necessary data background quickly enough and eventually ran out of time.
+
 In the final phase of the project, I revised the documentation for each module and function, updated the `README.md` file, and checked (hopefully) the entire codebase for PEP 8 compliance. In addition, I reviewed and updated each test file to ensure that all newly added functionalities were properly tested.
 
 As a final and somewhat spontaneous improvement, I introduced a single common example data file that supports all three plot types, since we had also added the option for users to select an individual data file. In a very last step, I focused on testing all command-line input options consistently.
