@@ -44,7 +44,7 @@ def plot_scalar_with_wind(da, u, v, savepath=None, step=9):
     Parameters
     ----------
     da : xarray.DataArray
-        Scalar field to plot (e.g. geopotential).
+        Scalar field to plot: geopotential.
         Must contain ``latitude``, ``longitude``, ``pressure_level``,
         and ``valid_time`` coordinates.
     u : xarray.DataArray
