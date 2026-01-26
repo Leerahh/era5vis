@@ -108,8 +108,14 @@ era5vis_analysis_plots
 
 The generated HTML file can be opened in a web browser with:
 
-start index.html (For Windows)
-firefox index.html (For Linux & Windows)
+~~~
+start index.html
+~~~
+(For Windows)
+~~~
+firefox index.html
+~~~
+(For Linux & Windows)
 
 
 ## Configuration Files
@@ -149,6 +155,10 @@ era5vis_analysis_plots config/config.yaml --datafile path/to/file
 ~~~
 
 ## Arguments
+
+The `era5vis_analysis_plots` command accepts parameters via the command line and/or a YAML configuration file.  
+Command-line arguments always override configuration file values.
+
 | Parameter / Argument              | Default | Description / Notes                                                       |
 | --------------------------------- | ------- | ------------------------------------------------------------------------- |
 | `config`                          | –       | Path to configuration file (positional argument)                          |
@@ -166,13 +176,12 @@ era5vis_analysis_plots config/config.yaml --datafile path/to/file
 | `--u1` / `--horizontal_wind`      | `"u"`   | First horizontal wind component (zonal, east-west)                        |
 | `--u2` / `--meridional_wind`      | `"v"`   | Second horizontal wind component (meridional, north-south)                |
 | `--npoints`                       | `200`   | Number of interpolation points along vertical cross-section line          |
-| `--directory` / `--directory DIR` | `"."`   | Directory to save HTML output                                             |
-| `--no_browser` / `--no-browser`   | `False` | If set, do not open the plot automatically; just print the HTML file path |
+| `--directory`                     | `"."`   | Directory to save HTML output                                             |
+| `--no-browser`   | `False`        | If set, do not open the plot automatically; just print the HTML file path |
 | `--download_data` / `--dd`        | `False` | Download ERA5 data from CDS automatically if missing                      |
 | `--datafile` / `--df`             | –       | Path to ERA5 data file (overrides config file setting)                    |
 | `-h` / `--help`                   | –       | Show help message                                                         |
 | `--v` / `--version`               | –       | Show program version number                                               |
-
 
 
 ## Programmatic Usage
