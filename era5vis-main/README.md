@@ -176,8 +176,8 @@ Command-line arguments always override configuration file values.
 | `--u1` / `--horizontal_wind`      | `"u"`   | First horizontal wind component (zonal, east-west)                        |
 | `--u2` / `--meridional_wind`      | `"v"`   | Second horizontal wind component (meridional, north-south)                |
 | `--npoints`                       | `200`   | Number of interpolation points along vertical cross-section line          |
-| `--directory` / `--directory DIR` | `"."`   | Directory to save HTML output                                             |
-| `--no_browser` / `--no-browser`   | `False` | If set, do not open the plot automatically; just print the HTML file path |
+| `--directory`                     | `"."`   | Directory to save HTML output                                             |
+| `--no-browser`   | `False`        | If set, do not open the plot automatically; just print the HTML file path |
 | `--download_data` / `--dd`        | `False` | Download ERA5 data from CDS automatically if missing                      |
 | `--datafile` / `--df`             | –       | Path to ERA5 data file (overrides config file setting)                    |
 | `-h` / `--help`                   | –       | Show help message                                                         |
