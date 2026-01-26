@@ -5,7 +5,7 @@ Edited by Leah Herrfurth, December 2025
     - Using parametrized pytest to test the CLI functions
     - Adding config testcases  
 Edited by Lina Brückner, January 2026
-    - Adding parameters u and v
+    - Added parameters u and v
 """
 
 import era5vis
@@ -102,16 +102,12 @@ def test_html_print_with_config(capsys, tmp_path, retrieve_param_level_time_wind
 
 
 @pytest.mark.parametrize("args", [0, 1, 2, 3])
-def test_error(capsys, args, incomplete_test_cases):
+def test_error(args, incomplete_test_cases):
+    """Test that incomplete config/CLI calls raise a SystemExit."""
     bad_args = incomplete_test_cases[args]
 
-    if bad_args in (["-p", "z", "--no-browser"], ["--lvl", "900", "--no-browser"]):
-        with pytest.raises(SystemExit) as exc:
-            analysis_plots(bad_args)
-        assert exc.value.code == 2  # argparse error exit code
-    else:
-        with pytest.raises(ValueError) as exc:
-            analysis_plots(bad_args)
+    with pytest.raises(ValueError) as exc:
+        analysis_plots(bad_args)
 
 
 @pytest.mark.parametrize(
