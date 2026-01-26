@@ -173,6 +173,119 @@ era5vis_analysis_plots config/config.yaml --datafile path/to/file
 | `-h` / `--help`                   | –       | Show help message                                                         |
 | `--v` / `--version`               | –       | Show program version number                                               |
 
+## Arguments
+
+The `era5vis_analysis_plots` command accepts parameters via the command line and/or a YAML configuration file.  
+Command-line arguments always override configuration file values.
+
+---
+
+### 🔹 General arguments (all plot types)
+
+| Argument | Default | Description |
+|--------|---------|-------------|
+| `config` | – | Path to YAML configuration file (positional argument) |
+| `--plot_type`, `--pl` | `scalar_wind` | Plot type: `scalar_wind`, `skewT`, `vert_cross` |
+| `--directory` | `.` | Directory to save HTML and PNG output |
+| `--no-browser` | `False` | Do not open the plot automatically |
+| `--download_data`, `--dd` | `False` | Download ERA5 data from CDS |
+| `--datafile`, `--df` | – | Path to ERA5 NetCDF file (overrides config) |
+| `--version`, `--v` | – | Show program version |
+| `--help`, `-h` | – | Show help message |
+
+> **Note**  
+> `--download_data` and `--datafile` cannot be used together.
+
+---
+
+### 🔹 Time selection
+
+| Argument | Default | Description |
+|--------|---------|-------------|
+| `--time`, `-t` | – | Time to plot (`YYYYmmddHHMM`) |
+| `--time_index`, `--ti` | `0` | Time index if `--time` is not provided |
+
+---
+
+## 🟦 `scalar_wind` (default)
+
+Horizontal scalar field with wind vectors.
+
+### Required arguments
+
+| Argument | Description |
+|--------|-------------|
+| `--parameter`, `-p` | ERA5 scalar variable (e.g. `t`, `z`) |
+| `--level`, `--lvl` | Pressure level in hPa |
+
+### Optional arguments
+
+| Argument | Default | Description |
+|--------|---------|-------------|
+| `--u1`, `--horizontal_wind` | `u` | Zonal wind component |
+| `--u2`, `--meridional_wind` | `v` | Meridional wind component |
+| `--time`, `-t` | – | Datetime to plot |
+| `--time_index`, `--ti` | `0` | Time index fallback |
+
+---
+
+## 🟩 `skewT`
+
+Vertical atmospheric sounding (Skew-T diagram with hodograph).
+
+### Required arguments
+
+| Argument | Description |
+|--------|-------------|
+| `--lat`, `--latitude` | Latitude in degrees |
+| `--lon`, `--longitude` | Longitude in degrees |
+| `--time`, `-t` | Datetime (`YYYYmmddHHMM`) |
+
+### Optional arguments
+
+| Argument | Default | Description |
+|--------|---------|-------------|
+| `--directory` | `.` | Output directory |
+| `--datafile` | – | ERA5 NetCDF file |
+
+---
+
+## 🟥 `vert_cross`
+
+Vertical cross section along a transect.
+
+### Required arguments
+
+| Argument | Description |
+|--------|-------------|
+| `--parameter`, `-p` | ERA5 variable to plot |
+| `--lat0` | Start latitude |
+| `--lon0` | Start longitude |
+| `--lat1` | End latitude |
+| `--lon1` | End longitude |
+
+### Optional arguments
+
+| Argument | Default | Description |
+|--------|---------|-------------|
+| `--npoints` | `200` | Number of interpolation points along transect |
+| `--u1` | `u` | Zonal wind component |
+| `--u2` | `v` | Meridional wind component |
+| `--time`, `-t` | – | Datetime or nearest available time |
+
+---
+
+### 🔁 Argument precedence
+
+1. Command-line arguments  
+2. Plot-type–specific configuration  
+3. Global configuration  
+4. Internal defaults
+
+
+
+
+
 
 
 ## Programmatic Usage
