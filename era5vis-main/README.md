@@ -20,11 +20,15 @@ The package is inspired by the example projects scispack and climvis by Fabien M
 The following Python packages are required:
 
 * numpy
+* scipy
 * xarray
 * netCDF4
 * matplotlib
-* pytest
+* cartopy
+* metpy
+* cdsapi
 * pyyaml
+* pytest
 
 
 To download real ERA5 data, the additional dependency `cdsapi` is required.
