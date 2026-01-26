@@ -102,13 +102,12 @@ def test_html_print_with_config(capsys, tmp_path, retrieve_param_level_time_wind
 
 
 @pytest.mark.parametrize("args", [0, 1, 2, 3])
-def test_error(capsys, args, incomplete_test_cases):
+def test_error(args, incomplete_test_cases):
     """Test that incomplete config/CLI calls raise a SystemExit."""
     bad_args = incomplete_test_cases[args]
 
     with pytest.raises(ValueError) as exc:
         analysis_plots(bad_args)
-
 
 
 @pytest.mark.parametrize(
