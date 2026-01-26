@@ -5,7 +5,7 @@ Edited by Leah Herrfurth, December 2025
     - Using parametrized pytest to test the CLI functions
     - Adding config testcases  
 Edited by Lina Brückner, January 2026
-    - Adding parameters u and v
+    - Added parameters u and v
 """
 
 import era5vis
